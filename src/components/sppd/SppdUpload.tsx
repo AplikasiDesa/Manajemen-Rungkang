@@ -137,8 +137,7 @@ export function SppdUpload({ onSuccess, initialData }: SppdUploadProps) {
       const payload = {
         action: 'generateNumber',
         destination,
-        officialName,
-        spreadsheetId: GOOGLE_CONFIG.sppdSpreadsheetId
+        officialName
       };
       const response = await fetch(GOOGLE_CONFIG.appsScriptUrl, {
         method: 'POST',

@@ -33,7 +33,7 @@ const UNDANGAN_FOLDER_ID = "1CbcNmav1OGDIfgZp_duEmen02ctGR4or";
 // =========================================
 // FUNGSI UTAMA (WEB APP ENDPOINT)
 // =========================================
-function doPost(e) {
+function doPost(e: any) {
   try {
     // Parsing body request yang dikirim dari aplikasi frontend
     const body = JSON.parse(e.postData.contents);

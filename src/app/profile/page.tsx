@@ -66,12 +66,21 @@ export default function ProfilePage() {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-          try {
-              const data = new Uint8Array(e.target.result as ArrayBuffer);
-              const workbook = XLSX.read(data, { type: 'array' });
-              const sheetName = workbook.SheetNames[0];
-              const worksheet = workbook.Sheets[sheetName];
-              const json = XLSX.utils.sheet_to_json(worksheet, { header: ['name', 'jabatan'], range: 1 });
+  try {
+    	const result = e.target?.result;
+
+    	if (!result) return;
+
+    	const data = new Uint8Array(result as ArrayBuffer);
+
+    	const workbook = XLSX.read(data, { type: "array" });
+    	const sheetName = workbook.SheetNames[0];
+    	const worksheet = workbook.Sheets[sheetName];
+
+    	const json = XLSX.utils.sheet_to_json(worksheet, {
+	      header: ["name", "jabatan"],
+	      range: 1,
+	    });
               const newPersonnelForCategory = json.filter((p: any) => p.name && p.jabatan);
 
               if (newPersonnelForCategory.length === 0) {

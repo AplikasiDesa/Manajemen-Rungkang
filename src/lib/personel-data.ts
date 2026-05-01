@@ -1,3 +1,8 @@
+export type Official = {
+  name: string;
+  jabatan: string;
+  category: string;
+};
 
 export const OFFICIALS = [
     { name: "APRIYANTI", jabatan: "STAF SEKSI KESEJAHTERAAN", category: "Pemerintah Desa" },
