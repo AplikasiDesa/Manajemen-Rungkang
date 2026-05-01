@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId);
+
+      match /kegiatans/{kegiatanId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /sppds/{sppdId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ATURAN YANG SEHARUSNYA ADA
+      match /spjDesa/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /produkHukum/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

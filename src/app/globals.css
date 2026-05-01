@@ -1,0 +1,82 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 142 78% 28%; /* Dark Leaf Green */
+    --primary-foreground: 142 15% 96%;
+    --secondary: 142 20% 95%;
+    --secondary-foreground: 142 78% 15%;
+    --muted: 142 20% 95%;
+    --muted-foreground: 142 20% 40%;
+    --accent: 142 78% 28%; /* Dark Leaf Green */
+    --accent-foreground: 142 15% 96%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 142 20% 88%;
+    --input: 142 20% 93%;
+    --ring: 142 78% 28%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 142 15% 5%;
+    --foreground: 142 10% 80%;
+    --card: 142 15% 8%;
+    --card-foreground: 142 10% 80%;
+    --popover: 142 15% 5%;
+    --popover-foreground: 142 10% 80%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 142 80% 10%;
+    --secondary: 142 20% 15%;
+    --secondary-foreground: 142 10% 80%;
+    --muted: 142 20% 12%;
+    --muted-foreground: 142 10% 60%;
+    --accent: 142 70% 45%;
+    --accent-foreground: 142 80% 10%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 142 15% 20%;
+    --input: 142 15% 20%;
+    --ring: 142 70% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-body overflow-x-hidden;
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Custom Scrollbar for better UI on mobile */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

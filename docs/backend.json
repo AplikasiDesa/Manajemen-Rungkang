@@ -1,0 +1,140 @@
+
+{
+  "entities": {
+    "Kegiatan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Kegiatan",
+      "type": "object",
+      "description": "Represents a work activity record uploaded by a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "location": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "uploadDate": { "type": "string", "format": "date-time" },
+        "driveFolderId": { "type": "string" },
+        "imageUrls": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "userId", "title", "description", "uploadDate"]
+    },
+    "Sppd": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sppd",
+      "type": "object",
+      "description": "Represents an official travel expense report (SPPD) uploaded by a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "documentNumber": { "type": "string" },
+        "destination": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "expenseDate": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "approvalStatus": { "type": "string" },
+        "companions": { "type": "string" }
+      },
+      "required": ["id", "userId", "destination", "amount", "approvalStatus"]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "logoBase64": { "type": "string" },
+        "heroPhotoBase64": { "type": "string", "description": "Hero photo for the landing page" },
+        "role": { "type": "string", "enum": ["citizen", "admin", "perangkat"] },
+        "kegiatanFolderId": { "type": "string", "description": "Google Drive Folder ID for activities" },
+        "spjFolderId": { "type": "string", "description": "Google Drive Folder ID for SPJ" },
+        "produkHukumFolderId": { "type": "string", "description": "Google Drive Folder ID for legal products" },
+        "agendaFolderId": { "type": "string" },
+        "googleCalendarId": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "SpjDesa": {
+       "title": "SpjDesa",
+       "type": "object",
+       "properties": {
+         "id": { "type": "string" },
+         "userId": { "type": "string" },
+         "kegiatan": { "type": "string" },
+         "sumberAnggaran": { "type": "string" },
+         "bulan": { "type": "string" },
+         "fileUrl": { "type": "string" },
+         "driveFileId": { "type": "string" },
+         "createdAt": { "type": "string", "format": "date-time" }
+       },
+       "required": ["id", "userId", "kegiatan", "sumberAnggaran", "bulan", "fileUrl"]
+    },
+    "ProdukHukum": {
+       "title": "ProdukHukum",
+       "type": "object",
+       "properties": {
+         "id": { "type": "string" },
+         "userId": { "type": "string" },
+         "jenisDok": { "type": "string" },
+         "nomorDok": { "type": "string" },
+         "fileUrl": { "type": "string" },
+         "driveFileId": { "type": "string" },
+         "createdAt": { "type": "string", "format": "date-time" }
+       },
+       "required": ["id", "userId", "jenisDok", "nomorDok", "fileUrl"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "anonymous"]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "User profiles collection."
+        }
+      },
+      {
+        "path": "/users/{userId}/kegiatans/{kegiatanId}",
+        "definition": {
+          "entityName": "Kegiatan",
+          "schema": { "$ref": "#/backend/entities/Kegiatan" },
+          "description": "User activities collection."
+        }
+      },
+      {
+        "path": "/users/{userId}/sppds/{sppdId}",
+        "definition": {
+          "entityName": "Sppd",
+          "schema": { "$ref": "#/backend/entities/Sppd" },
+          "description": "User travel expense reports collection."
+        }
+      },
+      {
+        "path": "/users/{userId}/spjDesa/{spjId}",
+        "definition": {
+          "entityName": "SpjDesa",
+          "schema": { "$ref": "#/backend/entities/SpjDesa" },
+          "description": "Village accountability reports collection."
+        }
+      },
+      {
+        "path": "/users/{userId}/produkHukum/{produkId}",
+        "definition": {
+          "entityName": "ProdukHukum",
+          "schema": { "$ref": "#/backend/entities/ProdukHukum" },
+          "description": "Legal products documents collection."
+        }
+      }
+    ]
+  }
+}
