@@ -119,10 +119,10 @@ export const generateNotulenPDF = async (values: any, logoBase64?: string | null
   doc.setFont("helvetica", "normal");
 
   const descriptionText = values.description || "(Belum ada isi ringkasan)";
-  const paragraphs = descriptionText.split('\n').filter(p => p.trim() !== '');
+  const paragraphs = descriptionText.split('\n').filter((p: string) => p.trim() !== '');
   const lineHeightFactor = 1.5;
 
-  paragraphs.forEach(para => {
+  paragraphs.forEach((para: string) => {
       const lines = doc.splitTextToSize(para, contentWidth);
       const textBlockHeight = doc.getTextDimensions(lines, { maxWidth: contentWidth, lineHeightFactor: lineHeightFactor }).h;
 
@@ -339,10 +339,10 @@ export const generateSuratTugasPDF = async (values: any, logoBase64?: string | n
 
   doc.text("Kepada :", labelCol, currentY);
   
-  const companions = values.companions ? values.companions.split("\n").filter(Boolean) : [];
+  const companions = values.companions ? values.companions.split("\n").filter((c: string) => Boolean(c)) : [];
   const personnelList = [
     { name: (values.officialName || "-").split(" - ")[0], job: (values.officialName || "-").split(" - ")[1] || "-" },
-    ...companions.map(c => ({ name: c.split(" - ")[0], job: c.split(" - ")[1] || "-" }))
+    ...companions.map((c: string) => ({ name: c.split(" - ")[0], job: c.split(" - ")[1] || "-" }))
   ];
 
   personnelList.forEach((p, idx) => {
@@ -461,18 +461,15 @@ export const generateSPPDPDF = async (values: any, logoBase64?: string | null): 
   drawTableRow("6.", "a. Tempat Berangkat\nb. Tempat Tujuan", `a. Rungkang\nb. ${values.destination || "-"}`);
   drawTableRow("7.", "a. Lamanya\nb. Tanggal Berangkat\nc. Tanggal Kembali", `a. 1 (satu) hari\nb. ${formatDateIndo(values.startDate)}\nc. ${formatDateIndo(values.endDate)}`);
 
-  // POINT 8: PENGIKUT (REFINED TANGGAL & GARIS)
-  const companions = values.companions ? values.companions.split("\n").filter(Boolean) : [];
+  const companions = values.companions ? values.companions.split("\n").filter((c: string) => Boolean(c)) : [];
   const header8H = 8.0;
   const row8H = 8.0;
   const totalRow8H = header8H + (Math.max(1, companions.length) * row8H);
 
-  // Bingkai Kolom 1 (No. 8)
   doc.rect(margin, currentY, col1W, totalRow8H);
   doc.setFont("helvetica", "normal");
   doc.text("8.", margin + 5, currentY + 5, { align: "center" });
 
-  // Header Nama/Jabatan Pengikut
   doc.rect(margin + col1W, currentY, col2W, header8H);
   doc.text("Nama Pengikut", margin + col1W + 2, currentY + 5.5);
   doc.rect(margin + col1W + col2W, currentY, col3W, header8H);
@@ -480,7 +477,7 @@ export const generateSPPDPDF = async (values: any, logoBase64?: string | null): 
   
   let compY = currentY + header8H;
   if (companions.length > 0) {
-    companions.forEach((c, idx) => {
+    companions.forEach((c: string) => {
       const [cName, cJob] = c.split(" - ");
       doc.rect(margin + col1W, compY, col2W, row8H);
       doc.text((cName || "-").toUpperCase(), margin + col1W + 2, compY + 5.5);
@@ -493,7 +490,7 @@ export const generateSPPDPDF = async (values: any, logoBase64?: string | null): 
     doc.rect(margin + col1W + col2W, compY, col3W, row8H);
     compY += row8H;
   }
-  currentY = compY; // Update currentY ke posisi setelah tabel pengikut
+  currentY = compY; 
 
   drawTableRow("9.", "Pembebanan\na. Instansi\nb. Mata Anggaran", `\na. Pemdes Rungkang\nb. APBDes 2026`);
   drawTableRow("10.", "Keterangan", "-");
