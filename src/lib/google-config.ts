@@ -26,5 +26,5 @@ interface GoogleConfig {
 export const GOOGLE_CONFIG: GoogleConfig = {
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbzx0UEr9bw-5JkqceyXASw23B6A-3c5WbVbkjgxZo3jN9R9x5U-rrf0Y3uSGH2mtkpIlw/exec",
   calendarId: "desarungkang014@gmail.com",
-  parentFolderId: "1-yZW2Z7V5J2j2aVp9p4aJ3R8Q9J4v8tU", // Contoh ID, ganti jika perlu
+  parentFolderId: "1-yZW2Z7V5J2j2aVp9p4aJ3R8Q9J4v8tU",
 };
