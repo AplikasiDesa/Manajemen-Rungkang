@@ -195,7 +195,7 @@ function DokumenContent() {
         const pdfData = { 
             kegiatan: finalTitle, 
             tanggal: date, 
-            participants: finalParticipants.map(p => ({ name: p.name, position: p.jabatan })), 
+            participants: finalParticipants.map(p => ({ name: p.name, jabatan: p.jabatan || "", category: p.category || "" })), 
             nominal: uangSakuNominal, 
             tax: uangSakuTax 
         };
