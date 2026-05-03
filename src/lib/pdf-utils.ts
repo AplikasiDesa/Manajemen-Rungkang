@@ -124,7 +124,9 @@ export const generateNotulenPDF = async (values: any, logoBase64?: string | null
 
   paragraphs.forEach((para: string) => {
       const lines = doc.splitTextToSize(para, contentWidth);
-      const textBlockHeight = doc.getTextDimensions(lines, { maxWidth: contentWidth, lineHeightFactor: lineHeightFactor }).h;
+      // lineHeightFactor tidak didukung di getTextDimensions options, jadi kita kalikan hasilnya
+      const textDim = doc.getTextDimensions(lines, { maxWidth: contentWidth });
+      const textBlockHeight = textDim.h * lineHeightFactor;
 
       if (currentY + textBlockHeight > pageHeight - margin) {
           doc.addPage();
@@ -533,7 +535,7 @@ export const generateSPPDPDF = async (values: any, logoBase64?: string | null): 
   doc.rect(margin, currentY, boxW, boxH);
   doc.rect(margin + boxW, currentY, boxW, boxH);
   doc.setFont("helvetica", "normal");
-  doc.text("II. Tiba di         : " + (values.destination || "-"), margin + 2, currentY + 5);
+  doc.text("II. Tiba di         : " + (values.destination || "-"), margin + 2, currentY + 10);
   doc.text("    Pada tanggal    : " + formatDateIndo(values.startDate), margin + 2, currentY + 10);
   doc.text("_____________________________", margin + boxW/2, currentY + 35, { align: "center" });
   doc.text("NIP. ............................................", margin + boxW/2, currentY + 40, { align: "center" });
