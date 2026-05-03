@@ -32,11 +32,11 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { APB_DATA, BIDANG_NAMES } from "@/lib/apbdes-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from "@/firebase"
+import { doc, collection, query, orderBy } from "firebase/firestore"
 import { generateDaftarHadirPDF, generateUangSakuPDF } from "@/lib/pdf-utils-v2"
 import { generateHonorNarasumberPDF, generateInsentifPDF, generateSiltapPDF } from "@/lib/pdf-utils"
-import { OFFICIALS, SILTAP_DATA, BPD_INSENTIF_DATA } from "@/lib/personel-data"
+import { SILTAP_DATA, BPD_INSENTIF_DATA } from "@/lib/personel-data"
 
 function DokumenContent() {
   const searchParams = useSearchParams()
@@ -47,11 +47,18 @@ function DokumenContent() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  // Firestore Data fetching
   const userDocRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
   }, [db, user])
   const { data: userData } = useDoc(userDocRef)
+
+  const personnelQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(collection(db, "users", user.uid, "personnel"), orderBy("name", "asc"))
+  }, [db, user])
+  const { data: officialsData } = useCollection(personnelQuery)
 
   const [useApbdes, setUseApbdes] = useState(true)
   const [bidang, setBidang] = useState("")
@@ -91,9 +98,10 @@ function DokumenContent() {
     setParticipantSelections(newSelections);
   };
 
-  const participantCategories = useMemo(() => 
-    Array.from(new Set(OFFICIALS.map(o => o.category).filter(c => c && c.trim() !== '')))
-  , []);
+  const participantCategories = useMemo(() => {
+    if (!officialsData) return [];
+    return Array.from(new Set(officialsData.map(o => o.category).filter(Boolean)));
+  }, [officialsData]);
 
   const filteredSources = useMemo(() => {
     if (!bidang) return []
@@ -157,6 +165,11 @@ function DokumenContent() {
   const current = type ? (configs[type] || null) : null
 
   const handlePrint = async () => {
+    if (!officialsData) {
+        toast({ variant: "destructive", title: "Data Belum Siap", description: "Menunggu sinkronisasi database..." });
+        return;
+    }
+
     setIsGenerating(true)
     try {
       const finalTitle = useApbdes ? kegiatan : manualTitle
@@ -167,10 +180,10 @@ function DokumenContent() {
         if (!finalTitle) throw new Error("Nama kegiatan harus diisi")
         const quota = jumlahOrang || 1;
         const selectedCats = participantSelections.filter(cat => cat && cat !== "none");
-        let allParticipants: { name: string; jabatan: string; category: string }[] = [];
+        let allParticipants: any[] = [];
         
         selectedCats.forEach(cat => {
-            const members = OFFICIALS.filter(o => o.category === cat);
+            const members = officialsData.filter(o => o.category === cat);
             allParticipants.push(...members);
         });
 
@@ -182,7 +195,7 @@ function DokumenContent() {
         const pdfData = { 
             kegiatan: finalTitle, 
             tanggal: date, 
-            participants: finalParticipants.map(p => ({ name: p.name, jabatan: p.jabatan, category: p.category })), 
+            participants: finalParticipants.map(p => ({ name: p.name, position: p.jabatan })), 
             nominal: uangSakuNominal, 
             tax: uangSakuTax 
         };
@@ -208,7 +221,7 @@ function DokumenContent() {
         };
         const selectedCategory = (categoryMap as any)[insentifCat];
         if(selectedCategory) {
-            insentifParticipants = OFFICIALS.filter(o => o.category === selectedCategory).map(o => ({ name: o.name, position: o.jabatan }))
+            insentifParticipants = officialsData.filter(o => o.category === selectedCategory).map(o => ({ name: o.name, position: o.jabatan }))
         }
 
         pdfBlob = await generateInsentifPDF({ 
@@ -673,7 +686,7 @@ function DokumenContent() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-teal-900 tracking-widest">Nominal Uang Saku (Rp)</Label>
                     <div className="relative">
-                      <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
+                      <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-teal-600" />
                       <Input 
                         type="number"
                         placeholder="0" 
@@ -686,7 +699,7 @@ function DokumenContent() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-teal-900 tracking-widest">Pot Pajak (%)</Label>
                     <div className="relative">
-                      <Percent className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
+                      <Percent className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-teal-600" />
                       <Input 
                         type="number"
                         placeholder="0" 

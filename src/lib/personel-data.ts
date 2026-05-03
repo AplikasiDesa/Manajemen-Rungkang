@@ -1,10 +1,16 @@
-export type Official = {
+
+/**
+ * @fileOverview Data awal personel untuk keperluan migrasi ke Firestore.
+ * File ini bersifat statis dan tidak lagi ditulis/diubah oleh server.
+ */
+
+export interface Official {
   name: string;
   jabatan: string;
   category: string;
-};
+}
 
-export const OFFICIALS = [
+export const OFFICIALS: Official[] = [
     { name: "APRIYANTI", jabatan: "STAF SEKSI KESEJAHTERAAN", category: "Pemerintah Desa" },
     { name: "DARSUM DARJO", jabatan: "KEPALA DUSUN RUNGKANG", category: "Pemerintah Desa" },
     { name: "HERU WAHYONO", jabatan: "SEKRETARIS DESA", category: "Pemerintah Desa" },
@@ -57,42 +63,27 @@ export const OFFICIALS = [
     { name: "Tati Romlah", jabatan: "Sari Rahayu 3", category: "Kader" },
     { name: "Yulitasari", jabatan: "Sari Rahayu 2", category: "Kader" },
     { name: "Yuni Ekowati", jabatan: "Sari Rahayu 2", category: "Kader" },
-    { name: "Aminah", jabatan: "Sari Rahayu 2", category: "Karang Taruna" },
-    { name: "Apriyanti", jabatan: "Sari Rahayu 1", category: "Karang Taruna" },
-    { name: "Dwiyantini", jabatan: "Sari Rahayu 3", category: "Karang Taruna" },
-    { name: "Kamtiyah", jabatan: "Sari Rahayu 1", category: "Karang Taruna" },
-    { name: "Kusmiyati", jabatan: "Sari Rahayu 1", category: "Karang Taruna" },
-    { name: "Kusriyah", jabatan: "Sari Rahayu 3", category: "Karang Taruna" },
-    { name: "Napsiyah", jabatan: "Sari Rahayu 2", category: "Karang Taruna" },
-    { name: "Nurhayati", jabatan: "Sari Rahayu 3", category: "Karang Taruna" },
-    { name: "Sulastri", jabatan: "Sari Rahayu 2", category: "Karang Taruna" },
-    { name: "Supriyati", jabatan: "Sari Rahayu 3", category: "Karang Taruna" },
-    { name: "Suryati", jabatan: "Sari Rahayu 1", category: "Karang Taruna" },
-    { name: "Suwartiningsih", jabatan: "Sari Rahayu 1", category: "Karang Taruna" },
-    { name: "Tati Romlah", jabatan: "Sari Rahayu 3", category: "Karang Taruna" },
-    { name: "Yulitasari", jabatan: "Sari Rahayu 2", category: "Karang Taruna" },
-    { name: "Yuni Ekowati", jabatan: "Sari Rahayu 2", category: "Karang Taruna" },
     { name: "SITI AMINAH", jabatan: "KADER PEMBANGUNAN MANUSIA", category: "KPM" }
 ];
 
 export const SILTAP_DATA = [
-    { name: "SUSANTO", jabatan: "KEPALA DESA", amount: 3000000 },
-    { name: "HERU WAHYONO", jabatan: "SEKRETARIS DESA", amount: 2500000 },
-    { name: "SARKUM SARTONO", jabatan: "KAUR UMUM & PERENCANAAN", amount: 2200000 },
-    { name: "SARYOKO", jabatan: "KAUR KEUANGAN", amount: 2200000 },
-    { name: "WAGINO", jabatan: "KASI PEMERINTAHAN", amount: 2200000 },
-    { name: "SAMSI", jabatan: "KASI PELAYANAN", amount: 2200000 },
-    { name: "TEDY TRISNANTO", jabatan: "KASI KESEJAHTERAAN", amount: 2200000 },
-    { name: "DARSUM DARJO", jabatan: "KEPALA DUSUN RUNGKANG", amount: 2100000 },
-    { name: "KARYO", jabatan: "KEPALA DUSUN MARGASARI", amount: 2100000 },
+    { name: "SUSANTO", jabatan: "KEPALA DESA", nominal: 3000000 },
+    { name: "HERU WAHYONO", jabatan: "SEKRETARIS DESA", nominal: 2500000 },
+    { name: "SARKUM SARTONO", jabatan: "KAUR UMUM & PERENCANAAN", nominal: 2200000 },
+    { name: "SARYOKO", jabatan: "KAUR KEUANGAN", nominal: 2200000 },
+    { name: "WAGINO", jabatan: "KASI PEMERINTAHAN", nominal: 2200000 },
+    { name: "SAMSI", jabatan: "KASI PELAYANAN", nominal: 2200000 },
+    { name: "TEDY TRISNANTO", jabatan: "KASI KESEJAHTERAAN", nominal: 2200000 },
+    { name: "DARSUM DARJO", jabatan: "KEPALA DUSUN RUNGKANG", nominal: 2100000 },
+    { name: "KARYO", jabatan: "KEPALA DUSUN MARGASARI", nominal: 2100000 },
 ];
 
 export const BPD_INSENTIF_DATA = [
-    { name: "ANWAR SIDIK", jabatan: "KETUA BPD", amount: 1000000 },
-    { name: "PONIMAN", jabatan: "WAKIL KETUA BPD", amount: 800000 },
-    { name: "SITI MAESAROH", jabatan: "SEKRETARIS BPD", amount: 700000 },
-    { name: "SARYONO", jabatan: "ANGGOTA BPD", amount: 600000 },
-    { name: "SUTRISNO", jabatan: "ANGGOTA BPD", amount: 600000 },
-    { name: "LUKMAN HAKIM", jabatan: "ANGGOTA BPD", amount: 600000 },
-    { name: "TURIMAN", jabatan: "ANGGOTA BPD", amount: 600000 },
+    { name: "ANWAR SIDIK", jabatan: "KETUA BPD", nominal: 1000000 },
+    { name: "PONIMAN", jabatan: "WAKIL KETUA BPD", nominal: 800000 },
+    { name: "SITI MAESAROH", jabatan: "SEKRETARIS BPD", nominal: 700000 },
+    { name: "SARYONO", jabatan: "ANGGOTA BPD", nominal: 600000 },
+    { name: "SUTRISNO", jabatan: "ANGGOTA BPD", nominal: 600000 },
+    { name: "LUKMAN HAKIM", jabatan: "ANGGOTA BPD", nominal: 600000 },
+    { name: "TURIMAN", jabatan: "ANGGOTA BPD", nominal: 600000 },
 ];

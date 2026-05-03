@@ -60,6 +60,18 @@
       },
       "required": ["id", "name", "email", "role"]
     },
+    "Personnel": {
+      "title": "Personnel",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "jabatan": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "jabatan", "category"]
+    },
     "SpjDesa": {
        "title": "SpjDesa",
        "type": "object",
@@ -101,6 +113,14 @@
           "entityName": "User",
           "schema": { "$ref": "#/backend/entities/User" },
           "description": "User profiles collection."
+        }
+      },
+      {
+        "path": "/users/{userId}/personnel/{personnelId}",
+        "definition": {
+          "entityName": "Personnel",
+          "schema": { "$ref": "#/backend/entities/Personnel" },
+          "description": "Village personnel collection."
         }
       },
       {

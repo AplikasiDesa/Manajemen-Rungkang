@@ -119,14 +119,12 @@ export const generateNotulenPDF = async (values: any, logoBase64?: string | null
   doc.setFont("helvetica", "normal");
 
   const descriptionText = values.description || "(Belum ada isi ringkasan)";
-  const paragraphs = descriptionText
-     .split('\n')
-     .filter((p: string) => p.trim() !== '');
+  const paragraphs = descriptionText.split('\n').filter(p => p.trim() !== '');
   const lineHeightFactor = 1.5;
 
-  paragraphs.forEach((para: string) => {
+  paragraphs.forEach(para => {
       const lines = doc.splitTextToSize(para, contentWidth);
-      const textBlockHeight = doc.getTextDimensions(lines, { maxWidth: contentWidth }).h * lineHeightFactor;
+      const textBlockHeight = doc.getTextDimensions(lines, { maxWidth: contentWidth, lineHeightFactor: lineHeightFactor }).h;
 
       if (currentY + textBlockHeight > pageHeight - margin) {
           doc.addPage();
@@ -344,7 +342,7 @@ export const generateSuratTugasPDF = async (values: any, logoBase64?: string | n
   const companions = values.companions ? values.companions.split("\n").filter(Boolean) : [];
   const personnelList = [
     { name: (values.officialName || "-").split(" - ")[0], job: (values.officialName || "-").split(" - ")[1] || "-" },
-    ...companions.map((c: string) => ({ name: c.split(" - ")[0], job: c.split(" - ")[1] || "-" }))
+    ...companions.map(c => ({ name: c.split(" - ")[0], job: c.split(" - ")[1] || "-" }))
   ];
 
   personnelList.forEach((p, idx) => {
@@ -482,7 +480,7 @@ export const generateSPPDPDF = async (values: any, logoBase64?: string | null): 
   
   let compY = currentY + header8H;
   if (companions.length > 0) {
-    companions.forEach((c: string, idx: number) => {
+    companions.forEach((c, idx) => {
       const [cName, cJob] = c.split(" - ");
       doc.rect(margin + col1W, compY, col2W, row8H);
       doc.text((cName || "-").toUpperCase(), margin + col1W + 2, compY + 5.5);
