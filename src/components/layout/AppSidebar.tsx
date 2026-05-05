@@ -14,8 +14,7 @@ import {
   CircleDollarSign,
   Files,
   Calendar,
-  Archive,
-  Inbox
+  Archive
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -88,9 +87,9 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="border-r bg-card shadow-none" collapsible="none" style={{ width: "18rem" } as React.CSSProperties}>
-      <SidebarHeader className="p-6">
-        <div className="flex items-center gap-4">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r bg-card shadow-none">
+      <SidebarHeader className="p-6 group-data-[collapsible=icon]:p-2">
+        <div className="flex items-center gap-4 group-data-[collapsible=icon]:justify-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background shadow-lg shadow-primary/10 border border-border overflow-hidden shrink-0">
             {userData?.logoBase64 ? (
               <Image 
@@ -107,16 +106,16 @@ export function AppSidebar() {
               </div>
             )}
           </div>
-          <div className="flex flex-col overflow-hidden">
+          <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="font-black text-xl leading-tight tracking-tighter text-foreground">Rungkang</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] font-bold">SISTEM MANAJEMEN</span>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-4">
+      <SidebarContent className="px-4 group-data-[collapsible=icon]:px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-2 py-4 text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+          <SidebarGroupLabel className="px-2 py-4 text-[10px] uppercase tracking-widest font-black text-muted-foreground group-data-[collapsible=icon]:hidden">
             MENU UTAMA
           </SidebarGroupLabel>
           <SidebarMenu className="gap-1.5">
@@ -149,12 +148,12 @@ export function AppSidebar() {
                         <item.icon className={cn("h-5 w-5", isActive && "stroke-[2.5px]")} />
                       </div>
                       <span className={cn(
-                        "font-bold text-[13px] whitespace-nowrap",
+                        "font-bold text-[13px] whitespace-nowrap group-data-[collapsible=icon]:hidden",
                         isActive ? "text-primary" : "text-foreground"
                       )}>
                         {item.label}
                       </span>
-                      {isActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />} 
+                      {isActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse group-data-[collapsible=icon]:hidden" />} 
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -163,8 +162,8 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="px-2 py-4 text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+        <SidebarGroup className="mt-4 group-data-[collapsible=icon]:mt-2">
+          <SidebarGroupLabel className="px-2 py-4 text-[10px] uppercase tracking-widest font-black text-muted-foreground group-data-[collapsible=icon]:hidden">
             SISTEM & LAYANAN
           </SidebarGroupLabel>
           <SidebarMenu className="gap-1.5">
@@ -172,7 +171,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild tooltip="Pengaturan" onClick={handleLinkClick} className="h-11 px-4 rounded-xl hover:bg-muted text-muted-foreground">
                     <Link href="/settings/" className="flex items-center gap-3">
                         <Settings className="h-5 w-5 shrink-0" />
-                        <span className="font-semibold text-[13px]">Pengaturan</span>
+                        <span className="font-semibold text-[13px] group-data-[collapsible=icon]:hidden">Pengaturan</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -180,21 +179,21 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 bg-muted/50 mt-auto border-t">
+      <SidebarFooter className="p-4 bg-muted/50 mt-auto border-t group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 w-full px-2 py-3 overflow-hidden">
+            <div className="flex items-center gap-3 w-full px-2 py-3 overflow-hidden group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
                 <span className="text-xs font-black text-primary uppercase">{userData?.name?.substring(0,2).toUpperCase() || 'AD'}</span>
               </div>
-              <div className="flex flex-col text-left overflow-hidden flex-1">
+              <div className="flex flex-col text-left overflow-hidden flex-1 group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-black text-foreground truncate">{userData?.name || 'Pengguna'}</span>
                 <span className="text-[10px] text-muted-foreground font-bold uppercase truncate">{userData?.role || 'Perangkat Desa'}</span>
               </div>
               <button 
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted hover:shadow-sm text-muted-foreground hover:text-destructive transition-all shrink-0"
+                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted hover:shadow-sm text-muted-foreground hover:text-destructive transition-all shrink-0 group-data-[collapsible=icon]:hidden"
               >
                 {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
               </button>

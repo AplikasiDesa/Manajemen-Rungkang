@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -127,8 +126,8 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
   }, [toast])
 
   useEffect(() => {
-    handleSync(selectedCalendarDate);
-  }, [selectedCalendarDate, handleSync])
+    if (activeTab === "agenda") handleSync(selectedCalendarDate);
+  }, [selectedCalendarDate, handleSync, activeTab])
 
   const fileToBase64 = async (file: File): Promise<{name: string, type: string, base64: string} | null> => {
     if (!file || file.size === 0) return null;
@@ -304,29 +303,29 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
   }
 
   return (
-    <div className="space-y-4 w-full overflow-x-hidden">
+    <div className="space-y-4 w-full">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 w-full h-12 mb-4 bg-muted/50 p-1">
-          <TabsTrigger value="agenda" className="gap-2 text-xs font-bold">
+        <TabsList className="grid grid-cols-2 w-full h-12 bg-muted/50 p-1 rounded-xl mb-4">
+          <TabsTrigger value="agenda" className="gap-2 text-[10px] font-black uppercase rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-primary">
             <CalendarIcon className="h-4 w-4" />
-            Agenda Desa
+            Agenda
           </TabsTrigger>
-          <TabsTrigger value="manual" className="gap-2 text-xs font-bold">
+          <TabsTrigger value="manual" className="gap-2 text-[10px] font-black uppercase rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-primary">
             <FileText className="h-4 w-4" />
-            Isi Laporan
+            Manual
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="agenda" className="mt-0 space-y-4 w-full">
-          <div className="flex flex-col gap-4 w-full">
-            <div className="flex items-end gap-2 p-4 border rounded-xl bg-card shadow-sm border-primary/20">
-              <div className="flex-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Pilih Tanggal Agenda</label>
+        <TabsContent value="agenda" className="mt-0 outline-none">
+          <div className="space-y-4">
+            <div className="flex items-end gap-2 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+              <div className="flex-1 min-w-0">
+                <label className="text-[9px] font-black uppercase text-primary/60 mb-1 block">Tgl Kegiatan</label>
                 <Input 
                   type="date" 
                   value={selectedCalendarDate}
                   onChange={(e) => setSelectedCalendarDate(e.target.value)}
-                  className="h-12 text-base font-bold w-full"
+                  className="h-12 text-base font-bold bg-white border-none shadow-sm rounded-xl"
                 />
               </div>
               <Button 
@@ -335,76 +334,76 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                 size="icon" 
                 onClick={() => handleSync(selectedCalendarDate)} 
                 disabled={isSyncing} 
-                className="h-12 w-12 border-primary/20 shrink-0"
+                className="h-12 w-12 border-primary/20 bg-white shrink-0 shadow-sm rounded-xl"
               >
                 <RefreshCw className={cn("h-5 w-5 text-primary", isSyncing && "animate-spin")} />
               </Button>
             </div>
 
-            <div className="space-y-2 w-full">
-              <ScrollArea className="h-[350px] w-full border rounded-xl p-2 bg-muted/20">
-                {isSyncing ? (
-                  <div className="flex flex-col items-center justify-center py-10 gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <p className="text-[10px] text-muted-foreground">Menghubungkan...</p>
-                  </div>
-                ) : agendas.length > 0 ? (
-                  <div className="space-y-3 w-full">
-                    {agendas.map((agenda: AgendaItem) => (
-                      <button
-                        key={agenda.id}
-                        type="button"
-                        onClick={() => handleSelectAgenda(agenda)}
-                        className="w-full text-left p-4 rounded-xl border bg-card hover:bg-primary/5 transition-all flex items-start justify-between gap-3 group border-primary/10 shadow-sm"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold leading-snug group-hover:text-primary whitespace-normal break-words">
-                            {agenda.summary}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-1 whitespace-normal break-words">
-                            {agenda.location || 'Lokasi belum diatur'}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary shrink-0 mt-1" />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-10 text-center border-2 border-dashed rounded-xl border-muted/50">
-                    <p className="text-xs text-muted-foreground">Tidak ada agenda pada tanggal ini.</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
+            <ScrollArea className="h-[300px] w-full rounded-2xl p-1">
+              {isSyncing ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase">Menghubungkan...</p>
+                </div>
+              ) : agendas.length > 0 ? (
+                <div className="space-y-2">
+                  {agendas.map((agenda: AgendaItem) => (
+                    <button
+                      key={agenda.id}
+                      type="button"
+                      onClick={() => handleSelectAgenda(agenda)}
+                      className="w-full text-left p-4 rounded-2xl border border-border bg-white hover:bg-primary/5 transition-all flex items-start justify-between gap-3 group shadow-sm active:scale-[0.98]"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold leading-snug group-hover:text-primary">
+                          {agenda.summary}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1.5 font-bold uppercase truncate">
+                          {agenda.location || 'Lokasi belum diatur'}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary shrink-0 mt-1" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-20 text-center border-2 border-dashed rounded-2xl border-muted/50">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase">Tidak ada agenda ditemukan.</p>
+                </div>
+              )}
+            </ScrollArea>
           </div>
         </TabsContent>
 
-        <TabsContent value="manual" className="mt-0 w-full">
+        <TabsContent value="manual" className="mt-0 outline-none">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="activityType"
                 render={({ field }) => (
-                  <FormItem className="space-y-3 p-4 border rounded-xl bg-primary/5 border-primary/20">
-                    <FormLabel className="text-xs font-black text-primary uppercase tracking-widest">Jenis Kegiatan</FormLabel>
+                  <FormItem className="space-y-2 p-3 bg-muted/30 rounded-2xl border border-border">
+                    <FormLabel className="text-[9px] font-black uppercase text-muted-foreground ml-1">Kategori Kegiatan</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex gap-4"
+                        className="flex gap-2"
                       >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Internal" />
-                          </FormControl>
-                          <FormLabel className="font-bold text-sm">Internal</FormLabel>
+                        <FormItem className="flex items-center space-x-2 space-y-0 flex-1">
+                          <FormControl><RadioGroupItem value="Internal" className="sr-only" /></FormControl>
+                          <FormLabel className={cn(
+                            "flex-1 h-10 flex items-center justify-center rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all border",
+                            field.value === "Internal" ? "bg-primary text-white border-primary shadow-sm" : "bg-white text-muted-foreground border-border"
+                          )}>Internal</FormLabel>
                         </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Eksternal" />
-                          </FormControl>
-                          <FormLabel className="font-bold text-sm">Eksternal</FormLabel>
+                        <FormItem className="flex items-center space-x-2 space-y-0 flex-1">
+                          <FormControl><RadioGroupItem value="Eksternal" className="sr-only" /></FormControl>
+                          <FormLabel className={cn(
+                            "flex-1 h-10 flex items-center justify-center rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all border",
+                            field.value === "Eksternal" ? "bg-primary text-white border-primary shadow-sm" : "bg-white text-muted-foreground border-border"
+                          )}>Eksternal</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -418,8 +417,8 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase">Nama Kegiatan</FormLabel>
-                    <FormControl><Input placeholder="Judul kegiatan..." {...field} /></FormControl>
+                    <FormLabel className="text-[9px] font-black uppercase text-muted-foreground ml-1">Nama Kegiatan</FormLabel>
+                    <FormControl><Input placeholder="Judul..." className="h-12 rounded-xl text-base font-bold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -431,18 +430,18 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                   name="officialName"
                   render={({ field }) => (
                     <FormItem className="animate-in fade-in slide-in-from-top-1">
-                      <FormLabel className="text-xs font-bold uppercase">Pelaksana</FormLabel>
+                      <FormLabel className="text-[9px] font-black uppercase text-muted-foreground ml-1">Pelaksana</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih Pelaksana..." />
+                          <SelectTrigger className="h-12 rounded-xl text-base font-bold">
+                            <SelectValue placeholder="Pilih..." />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="rounded-2xl">
                           <ScrollArea className="h-[200px]">
                             {filteredOfficials.map((o: any) => (
-                              <SelectItem key={`${o.name}-${o.jabatan}`} value={`${o.name} - ${o.jabatan}`}>
-                                {o.name} - {o.jabatan}
+                              <SelectItem key={`${o.name}-${o.jabatan}`} value={`${o.name} - ${o.jabatan}`} className="font-bold">
+                                {o.name}
                               </SelectItem>
                             ))}
                           </ScrollArea>
@@ -454,14 +453,14 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                 />
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase">Tanggal</FormLabel>
-                      <FormControl><Input type="date" {...field} /></FormControl>
+                      <FormLabel className="text-[9px] font-black uppercase text-muted-foreground ml-1">Tgl</FormLabel>
+                      <FormControl><Input type="date" className="h-12 rounded-xl font-bold" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -471,8 +470,8 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase">Lokasi</FormLabel>
-                      <FormControl><Input placeholder="Tempat..." {...field} /></FormControl>
+                      <FormLabel className="text-[9px] font-black uppercase text-muted-foreground ml-1">Lokasi</FormLabel>
+                      <FormControl><Input placeholder="Tempat..." className="h-12 rounded-xl font-bold" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -484,109 +483,77 @@ export function KegiatanUpload({ onSuccess }: { onSuccess?: () => void }) {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between mb-1">
-                      <FormLabel className="text-xs font-bold uppercase">Isi Notulen</FormLabel>
-                      <div className="flex gap-2 flex-wrap justify-end">
-                        <button 
-                          type="button" 
-                          className="flex h-7 items-center gap-1 rounded-md border border-blue-500/30 bg-blue-50/50 px-2 text-[10px] font-medium text-blue-600 hover:bg-blue-50" 
-                          onClick={handleAskAI}
-                          disabled={isGeneratingAI}
-                        >
-                          {isGeneratingAI ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} 
-                          Tanya AI
-                        </button>
-                        <button type="button" className="flex h-7 items-center gap-1 rounded-md border border-primary/30 px-2 text-[10px] font-medium text-primary hover:bg-primary/5" onClick={handlePreviewPDF}>
-                          <Printer className="h-3 w-3" /> PDF Notulen
-                        </button>
-                        {watchActivityType === "Internal" && (
-                          <button type="button" className="flex h-7 items-center gap-1 rounded-md border border-emerald-500/30 px-2 text-[10px] font-medium text-emerald-600 hover:bg-emerald-50" onClick={handlePreviewBAST}>
-                            <FileCheck className="h-3 w-3" /> PDF BAST
-                          </button>
-                        )}
-                      </div>
+                    <div className="flex items-center justify-between mb-1 px-1">
+                      <FormLabel className="text-[9px] font-black uppercase text-muted-foreground">Notulensi</FormLabel>
+                      <button 
+                        type="button" 
+                        className="flex h-7 items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-50 px-2 text-[9px] font-black uppercase text-sky-600 active:scale-95 transition-transform" 
+                        onClick={handleAskAI}
+                        disabled={isGeneratingAI}
+                      >
+                        {isGeneratingAI ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} 
+                        Bantuan AI
+                      </button>
                     </div>
                     <FormControl>
-                      <Textarea placeholder="Tulis ringkasan kegiatan..." className="h-32 text-sm leading-relaxed" {...field} />
+                      <Textarea placeholder="Tulis hasil kegiatan..." className="h-40 rounded-2xl text-sm leading-relaxed font-medium" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 <div 
                   onClick={() => photoInputRef.current?.click()} 
                   className={cn(
-                    "h-20 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors", 
-                    selectedPhotos.length > 0 ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 hover:bg-primary/5"
+                    "h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95", 
+                    selectedPhotos.length > 0 ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 border-muted-foreground/10"
                   )}
                 >
-                  <input 
-                    type="file" 
-                    ref={photoInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    multiple 
-                    onChange={(e) => setSelectedPhotos(Array.from(e.target.files || []))} 
-                  />
+                  <input type="file" ref={photoInputRef} className="hidden" accept="image/*" multiple onChange={(e) => setSelectedPhotos(Array.from(e.target.files || []))} />
                   {selectedPhotos.length > 0 ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <ImagePlus className="h-4 w-4 text-muted-foreground" />}
-                  <span className="text-[8px] font-bold text-center px-1">
-                    {selectedPhotos.length > 0 ? `${selectedPhotos.length} Foto` : "Foto"}
-                  </span>
+                  <span className="text-[8px] font-black uppercase">{selectedPhotos.length > 0 ? `${selectedPhotos.length} Foto` : "Foto"}</span>
                 </div>
 
                 <div 
                   onClick={() => undanganInputRef.current?.click()} 
                   className={cn(
-                    "h-20 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors", 
-                    selectedUndangan ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 hover:bg-accent/5"
+                    "h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95", 
+                    selectedUndangan ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 border-muted-foreground/10"
                   )}
                 >
-                  <input 
-                    type="file" 
-                    ref={undanganInputRef} 
-                    className="hidden" 
-                    accept=".pdf,.doc,.docx" 
-                    onChange={(e) => setSelectedUndangan(e.target.files?.[0] || null)} 
-                  />
+                  <input type="file" ref={undanganInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => setSelectedUndangan(e.target.files?.[0] || null)} />
                   {selectedUndangan ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <FileText className="h-4 w-4 text-muted-foreground" />}
-                  <span className="text-[8px] font-bold text-center px-1 truncate w-full">
-                    {selectedUndangan ? selectedUndangan.name : "Undangan"}
-                  </span>
+                  <span className="text-[8px] font-black uppercase truncate w-full text-center px-1">{selectedUndangan ? "SIAP" : "Undangan"}</span>
                 </div>
 
                 <div 
                   onClick={() => materiInputRef.current?.click()} 
                   className={cn(
-                    "h-20 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors", 
-                    selectedMaterials.length > 0 ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 hover:bg-blue-50"
+                    "h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95", 
+                    selectedMaterials.length > 0 ? "bg-emerald-50 border-emerald-500/50" : "bg-muted/30 border-muted-foreground/10"
                   )}
                 >
-                  <input 
-                    type="file" 
-                    ref={materiInputRef} 
-                    className="hidden" 
-                    accept=".pdf,.doc,.docx,.ppt,.pptx" 
-                    multiple 
-                    onChange={(e) => setSelectedMaterials(Array.from(e.target.files || []))} 
-                  />
+                  <input type="file" ref={materiInputRef} className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx" multiple onChange={(e) => setSelectedMaterials(Array.from(e.target.files || []))} />
                   {selectedMaterials.length > 0 ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <BookOpen className="h-4 w-4 text-muted-foreground" />}
-                  <span className="text-[8px] font-bold text-center px-1">
-                    {selectedMaterials.length > 0 ? `${selectedMaterials.length} Materi` : "Materi"}
-                  </span>
+                  <span className="text-[8px] font-black uppercase">{selectedMaterials.length > 0 ? `${selectedMaterials.length} File` : "Materi"}</span>
                 </div>
               </div>
 
-              <div className="p-4 bg-muted/20 rounded-xl flex items-start gap-3">
-                <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase">
-                  Data dikirim langsung ke Google Drive Desa.
-                </p>
+              <div className="flex gap-2 p-2 bg-amber-50 rounded-xl border border-amber-100">
+                 <button type="button" className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg bg-white text-[9px] font-black uppercase text-primary border border-primary/20 shadow-sm" onClick={handlePreviewPDF}>
+                    <Printer className="h-3 w-3" /> PDF Notulen
+                 </button>
+                 {watchActivityType === "Internal" && (
+                    <button type="button" className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg bg-white text-[9px] font-black uppercase text-emerald-600 border border-emerald-500/20 shadow-sm" onClick={handlePreviewBAST}>
+                        <FileCheck className="h-3 w-3" /> PDF BAST
+                    </button>
+                 )}
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base font-bold shadow-lg" disabled={isUploading}>
-                {isUploading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Menyimpan...</> : <><Upload className="mr-2 h-5 w-5" /> Simpan ke Drive</>}
+              <Button type="submit" className="w-full h-14 text-base font-black uppercase shadow-xl rounded-2xl active:scale-95 transition-all mt-4" disabled={isUploading}>
+                {isUploading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Mengirim...</> : <><Upload className="mr-2 h-5 w-5" /> Simpan ke Drive</>}
               </Button>
             </form>
           </Form>

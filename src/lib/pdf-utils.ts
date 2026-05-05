@@ -124,7 +124,6 @@ export const generateNotulenPDF = async (values: any, logoBase64?: string | null
 
   paragraphs.forEach((para: string) => {
       const lines = doc.splitTextToSize(para, contentWidth);
-      // lineHeightFactor tidak didukung di getTextDimensions options, jadi kita kalikan hasilnya
       const textDim = doc.getTextDimensions(lines, { maxWidth: contentWidth });
       const textBlockHeight = textDim.h * lineHeightFactor;
 
@@ -986,12 +985,13 @@ export const generateSiltapPDF = async (values: any, logoBase64?: string | null)
   doc.text(`Bulan : ${values.month}`, margin, 60);
 
   let currentY = 65;
-  const colW = [10, 50, 55, 25, 30]; 
+  const colW = [10, 35, 55, 25, 45]; 
   const rowH = 12;
   const headers = ["NO", "NAMA", "JABATAN", "NOMINAL", "TTD"];
 
   const drawHeader = () => {
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
     doc.rect(margin, currentY, colW[0], 10);
     doc.text("NO", margin + 5, currentY + 6.5, { align: "center" });
     doc.rect(margin + colW[0], currentY, colW[1], 10);
@@ -1007,44 +1007,59 @@ export const generateSiltapPDF = async (values: any, logoBase64?: string | null)
 
   drawHeader();
 
-  doc.setFont("helvetica", "normal");
-
   values.data.forEach((item: any, i: number) => {
     const splitJabatan = doc.splitTextToSize(item.jabatan || "", colW[2] - 4);
     const itemHeight = Math.max(rowH, splitJabatan.length * 5 + 4);
+    
+    const isLastFewRows = i >= values.data.length - 2;
+    const signatureSpace = 55;
+    const threshold = isLastFewRows ? pageHeight - signatureSpace - itemHeight : pageHeight - 20;
 
-    if (currentY + itemHeight > pageHeight - 20) { 
+    if (currentY + itemHeight > threshold) { 
       doc.addPage();
       addKopSuratSync(doc, logoImg, margin, pageWidth);
       currentY = 40;
       drawHeader();
     }
+    
+    // Explicitly set font for each row to prevent state leak from header
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    
     const startY = currentY;
 
     doc.rect(margin, startY, colW[0], itemHeight);
     doc.text((i + 1).toString(), margin + 5, startY + (itemHeight / 2) + 1.5, { align: "center" });
+    
     doc.rect(margin + colW[0], startY, colW[1], itemHeight);
-    doc.text(item.name || "", margin + colW[0] + 2, startY + (itemHeight / 2) + 1.5);
+    doc.text(item.name || "", margin + colW[0] + 2, startY + (itemHeight / 2) + 1.5, { maxWidth: colW[1] - 4 });
+    
     doc.rect(margin + colW[0] + colW[1], startY, colW[2], itemHeight);
     doc.text(splitJabatan, margin + colW[0] + colW[1] + 2, startY + 5);
+    
     doc.rect(margin + colW[0] + colW[1] + colW[2], startY, colW[3], itemHeight);
     doc.text((item.nominal || 0).toLocaleString('id-ID'), margin + colW[0] + colW[1] + colW[2] + colW[3] - 2, startY + (itemHeight / 2) + 1.5, { align: "right" });
+    
     doc.rect(margin + colW[0] + colW[1] + colW[2] + colW[3], startY, colW[4], itemHeight);
     
     const signX = (i % 2 === 0) ? margin + colW[0] + colW[1] + colW[2] + colW[3] + 2 : margin + colW[0] + colW[1] + colW[2] + colW[3] + colW[4] / 2;
     doc.setFontSize(8);
     doc.text(`${i + 1}.`, signX, startY + (itemHeight / 2) + 1);
-    doc.setFontSize(10);
+    
     currentY += itemHeight;
   });
 
-  if (currentY > pageHeight - 60) { 
+  const finalSigSpace = 60;
+  if (currentY > pageHeight - finalSigSpace) { 
     doc.addPage(); 
     addKopSuratSync(doc, logoImg, margin, pageWidth);
     currentY = 40; 
   }
+  
   currentY += 15;
   const sigX = pageWidth - margin - 65;
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(`Rungkang, ${formatDateIndo(values.date)}`, sigX, currentY);
   doc.setFont("helvetica", "bold");
   doc.text("Kepala Desa Rungkang,", sigX, currentY + 6);

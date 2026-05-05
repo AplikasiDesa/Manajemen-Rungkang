@@ -36,7 +36,6 @@ import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from "@
 import { doc, collection, query, orderBy } from "firebase/firestore"
 import { generateDaftarHadirPDF, generateUangSakuPDF } from "@/lib/pdf-utils-v2"
 import { generateHonorNarasumberPDF, generateInsentifPDF, generateSiltapPDF } from "@/lib/pdf-utils"
-import { SILTAP_DATA, BPD_INSENTIF_DATA } from "@/lib/personel-data"
 
 function DokumenContent() {
   const searchParams = useSearchParams()
@@ -60,10 +59,10 @@ function DokumenContent() {
   }, [db, user])
   const { data: officialsData } = useCollection(personnelQuery)
 
-  const [useApbdes, setUseApbdes] = useState(true)
   const [bidang, setBidang] = useState("")
   const [sumber, setSumber] = useState("")
   const [kegiatan, setKegiatan] = useState("")
+  const [useApbdes, setUseApbdes] = useState(true)
   const [manualTitle, setManualTitle] = useState("")
   const [date, setDate] = useState("")
   const [location, setLocation] = useState("Balai Desa Rungkang")
@@ -164,6 +163,21 @@ function DokumenContent() {
 
   const current = type ? (configs[type] || null) : null
 
+  // Helper untuk mendapatkan nominal siltap berdasarkan jabatan
+  const getSiltapNominal = (jabatan: string) => {
+    const j = jabatan.toUpperCase();
+    if (j.includes("KEPALA DESA")) return 4000000;
+    if (j.includes("SEKRETARIS DESA")) return 3000000;
+    if (j.includes("KAUR KEUANGAN")) return 2400000;
+    if (j.includes("KAUR UMUM")) return 2400000;
+    if (j.includes("KASI PEMERINTAHAN")) return 2400000;
+    if (j.includes("KASI KESEJAHTERAAN")) return 2400000;
+    if (j.includes("KASI PELAYANAN")) return 2400000;
+    if (j.includes("KEPALA DUSUN")) return 2200000;
+    if (j.includes("STAF")) return 2050000;
+    return 0;
+  };
+
   const handlePrint = async () => {
     if (!officialsData) {
         toast({ variant: "destructive", title: "Data Belum Siap", description: "Menunggu sinkronisasi database..." });
@@ -193,11 +207,14 @@ function DokumenContent() {
         );
 
         const pdfData = { 
-            kegiatan: finalTitle, 
-            tanggal: date, 
-            participants: finalParticipants.map(p => ({ name: p.name, jabatan: p.jabatan || "", category: p.category || "" })), 
+            title: finalTitle, 
+            date: date, 
+            location: location,
+            time: time,
+            participants: finalParticipants.map(p => ({ name: p.name, position: p.jabatan || "", category: p.category || "" })), 
             nominal: uangSakuNominal, 
-            tax: uangSakuTax 
+            tax: uangSakuTax,
+            jumlahOrang: quota
         };
         
         if (type === "daftar-hadir") {
@@ -235,7 +252,37 @@ function DokumenContent() {
         }, userData?.logoBase64)
       }
       else if (type === "siltap") {
-        pdfBlob = await generateSiltapPDF({ month: insentifMonth, date, title: siltapSubType === "perangkat" ? "TANDA TERIMA SILTAP" : "TANDA TERIMA INSENTIF BPD", data: siltapSubType === "perangkat" ? SILTAP_DATA : BPD_INSENTIF_DATA }, userData?.logoBase64)
+        let siltapData: any[] = [];
+        if (siltapSubType === "perangkat") {
+          // Ambil dari Pemerintah Desa di Firestore
+          siltapData = officialsData
+            .filter(o => o.category === "Pemerintah Desa")
+            .map(o => ({
+              name: o.name,
+              jabatan: o.jabatan,
+              nominal: getSiltapNominal(o.jabatan)
+            }))
+            .sort((a, b) => (getSiltapNominal(b.jabatan) - getSiltapNominal(a.jabatan))); // Urutkan dari gaji tertinggi
+        } else {
+          // Ambil dari BPD di Firestore
+          siltapData = officialsData
+            .filter(o => o.category === "BPD")
+            .map(o => {
+               const j = o.jabatan.toUpperCase();
+               let nom = 600000; // Default Anggota
+               if (j.includes("KETUA")) nom = 1000000;
+               else if (j.includes("WAKIL")) nom = 800000;
+               else if (j.includes("SEKRETARIS")) nom = 700000;
+               return { name: o.name, jabatan: o.jabatan, nominal: nom };
+            });
+        }
+
+        pdfBlob = await generateSiltapPDF({ 
+          month: insentifMonth, 
+          date, 
+          title: siltapSubType === "perangkat" ? "TANDA TERIMA SILTAP" : "TANDA TERIMA INSENTIF BPD", 
+          data: siltapData 
+        }, userData?.logoBase64)
       }
 
       if (pdfBlob) {

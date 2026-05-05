@@ -1,4 +1,3 @@
-
 "use client"
 
 import './globals.css';
@@ -8,7 +7,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Button } from '@/components/ui/button';
-import { Settings, Loader2 } from 'lucide-react';
+import { Settings, Loader2, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -50,21 +49,28 @@ export default function RootLayout({
                 <Toaster />
               </main>
             ) : (
-              <SidebarProvider defaultOpen={true}>
+              <SidebarProvider>
                 <div className="flex min-h-screen w-full overflow-hidden">
                   <AppSidebar />
                   <SidebarInset className="flex-1 flex flex-col min-w-0">
-                    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/80 backdrop-blur-md px-4 md:hidden">
-                      <SidebarTrigger />
-                      <div className="flex-1 text-center font-black text-primary uppercase tracking-tighter">Rungkang</div>
-                      <Button variant="ghost" size="icon" asChild className="rounded-full">
+                    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-md px-4 md:hidden">
+                      <SidebarTrigger className="h-10 w-10" />
+                      <div className="flex-1 flex items-center justify-center gap-2">
+                         <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+                            <Home className="h-5 w-5 text-white" />
+                         </div>
+                         <span className="font-black text-primary uppercase tracking-tighter text-sm">DESA RUNGKANG</span>
+                      </div>
+                      <Button variant="ghost" size="icon" asChild className="rounded-xl h-10 w-10">
                         <Link href="/settings/">
                           <Settings className="h-5 w-5 text-muted-foreground" />
                         </Link>
                       </Button>
                     </header>
-                    <main className="flex-1 w-full max-w-screen-2xl mx-auto p-0 overflow-y-auto pb-20 md:pb-0">
-                      {children}
+                    <main className="flex-1 w-full max-w-screen-2xl mx-auto overflow-y-auto pb-24 md:pb-6 px-0 md:px-6">
+                      <div className="p-4 md:p-0">
+                        {children}
+                      </div>
                     </main>
                   </SidebarInset>
                 </div>

@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils"
 import { useState, useMemo, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { APB_DATA as initialApbData, BIDANG_NAMES, type ApbItem } from "@/lib/apbdes-data"
 import * as XLSX from "xlsx"
 import { useToast } from "@/hooks/use-toast"
@@ -95,7 +95,6 @@ export default function ApbdesPage() {
         const ws = wb.Sheets[wsname];
         const jsonData: any[] = XLSX.utils.sheet_to_json(ws, { header: 1 });
         
-        // Skip header row
         const importedData: ApbItem[] = jsonData.slice(1).map((row: any) => {
           const [kode, uraian, volumeStr, nominal, sumber] = row;
           
@@ -160,56 +159,52 @@ export default function ApbdesPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8">
+    <div className="flex flex-col gap-6 p-0 md:p-4">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild className="rounded-full h-10 w-10 md:hidden">
             <Link href="/">
               <ArrowLeft className="h-6 w-6" />
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-black text-primary uppercase tracking-tight">Transparansi APBDes</h1>
-            <p className="text-xs text-muted-foreground">Anggaran Pendapatan & Belanja Desa Rungkang 2026</p>
+            <h1 className="text-xl md:text-2xl font-black text-primary uppercase tracking-tight">Info APBDes</h1>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Anggaran & Belanja Desa 2026</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 self-end sm:self-center">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
             <input type="file" ref={fileInputRef} onChange={handleImport} className="hidden" accept=".xlsx, .xls, .csv" />
-            <Button variant="outline" size="sm" className="flex gap-2" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-4 w-4" />
-                Impor
+            <Button variant="outline" size="sm" className="h-9 px-3 gap-2 text-[10px] font-black uppercase rounded-xl shrink-0" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4" /> Impor
             </Button>
-            <Button variant="outline" size="sm" className="flex gap-2" onClick={handleExport}>
-                <Download className="h-4 w-4" />
-                Ekspor
+            <Button variant="outline" size="sm" className="h-9 px-3 gap-2 text-[10px] font-black uppercase rounded-xl shrink-0" onClick={handleExport}>
+                <Download className="h-4 w-4" /> Ekspor
             </Button>
-            <Button variant="destructive" size="sm" className="flex gap-2" onClick={() => setShowDeleteConfirm(true)}>
-                <Trash2 className="h-4 w-4" />
-                Hapus
+            <Button variant="destructive" size="sm" className="h-9 px-3 gap-2 text-[10px] font-black uppercase rounded-xl shrink-0" onClick={() => setShowDeleteConfirm(true)}>
+                <Trash2 className="h-4 w-4" /> Hapus
             </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1 border-none shadow-lg bg-primary text-primary-foreground">
+        <Card className="md:col-span-1 border-none shadow-lg bg-primary text-primary-foreground rounded-[2rem]">
           <CardHeader className="pb-2">
             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Total Pengeluaran</p>
             <CardTitle className="text-3xl font-black">{formatIDR(stats.total)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none font-bold text-[10px]">TAHUN 2026</Badge>
-              <span className="text-[10px] opacity-70">Realisasi per Hari Ini</span>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none font-black text-[9px] rounded-full uppercase">TAHUN 2026</Badge>
             </div>
             <div className="mt-8 space-y-4">
               {stats.revenueChart.map((s: any, i: number) => (
                 <div key={i} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="flex items-center gap-2 uppercase tracking-tighter opacity-80">{s.name}</span>
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
+                    <span className="opacity-80">{s.name}</span>
                     <span>{formatIDR(s.value)}</span>
                   </div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-white" style={{ width: `${stats.total > 0 ? (s.value / stats.total) * 100 : 0}%` }}></div>
+                    <div className="h-full bg-white transition-all duration-1000" style={{ width: `${stats.total > 0 ? (s.value / stats.total) * 100 : 0}%` }}></div>
                   </div>
                 </div>
               ))}
@@ -217,15 +212,17 @@ export default function ApbdesPage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 border-none shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="md:col-span-2 border-none shadow-md rounded-[2rem] bg-white">
+          <CardHeader className="flex flex-row items-center justify-between p-6">
             <div>
-              <CardTitle className="text-lg">Komposisi Sumber Dana</CardTitle>
-              <CardDescription>Penyebaran anggaran berdasarkan sumber pembiayaan</CardDescription>
+              <CardTitle className="text-base font-black uppercase">Komposisi Dana</CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase">Penyebaran Anggaran</CardDescription>
             </div>
-            <PieChartIcon className="h-5 w-5 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center">
+                <PieChartIcon className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
-          <CardContent className="h-[250px] w-full">
+          <CardContent className="h-[250px] w-full p-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -243,7 +240,7 @@ export default function ApbdesPage() {
                 </Pie>
                 <Tooltip 
                   formatter={(value: number) => formatIDR(value)}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -252,12 +249,12 @@ export default function ApbdesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 border-none shadow-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Belanja per Bidang</CardTitle>
-            <CardDescription>Alokasi dana untuk pembangunan & pemberdayaan</CardDescription>
+        <Card className="lg:col-span-1 border-none shadow-md rounded-[2rem] bg-white">
+          <CardHeader className="p-6">
+            <CardTitle className="text-base font-black uppercase">Belanja per Bidang</CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase">Alokasi pembangunan</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] w-full pt-4">
+          <CardContent className="h-[300px] w-full pt-0 pb-6 px-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.expenseChart} layout="vertical" margin={{ left: -20, right: 20 }}>
                 <XAxis type="number" hide />
@@ -267,12 +264,12 @@ export default function ApbdesPage() {
                   axisLine={false} 
                   tickLine={false} 
                   width={150}
-                  style={{ fontSize: '9px', fontWeight: 'bold' }}
+                  style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase' }}
                 />
                 <Tooltip 
                   formatter={(value: number) => formatIDR(value)}
                   cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
                 />
                 <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={12} />
               </BarChart>
@@ -280,18 +277,18 @@ export default function ApbdesPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 border-none shadow-md overflow-hidden">
-          <CardHeader className="bg-muted/30">
+        <Card className="lg:col-span-2 border-none shadow-md overflow-hidden rounded-[2rem] bg-white">
+          <CardHeader className="bg-muted/30 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-lg">Rincian Kegiatan</CardTitle>
-                <CardDescription>Detail alokasi penggunaan anggaran desa</CardDescription>
+                <CardTitle className="text-base font-black uppercase">Rincian Kegiatan</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase">Detail penggunaan anggaran</CardDescription>
               </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Cari uraian..." 
-                  className="pl-9 h-9 w-full sm:w-[200px] bg-white rounded-xl"
+                  className="pl-9 h-11 w-full bg-white rounded-xl border-none shadow-sm text-sm"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -299,86 +296,68 @@ export default function ApbdesPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[400px] w-full">
-              <Table>
-                <TableHeader className="bg-muted/50 sticky top-0 z-10">
-                  <TableRow>
-                    <TableHead className="text-[10px] font-black uppercase">Kode</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase">Uraian</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase text-right">Nominal</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase text-center">Sumber</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredData.length > 0 ? filteredData.map((item: ApbItem, i: number) => (
-                    <TableRow key={i} className="hover:bg-muted/20">
-                      <TableCell className="font-mono text-[10px] text-muted-foreground">{item.kode}</TableCell>
-                      <TableCell>
-                        <p className="text-xs font-bold leading-tight">{item.uraian}</p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">Vol: {item.volume} {item.satuan}</p>
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-xs text-primary">{formatIDR(item.nominal)}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className={cn(
-                          "text-[9px] font-black px-1.5 py-0",
-                          item.sumber === 'DD' ? "border-primary/20 text-primary" : 
-                          item.sumber === 'ADD' ? "border-accent/20 text-accent" : "border-primary/20 text-primary"
-                        )}>
-                          {item.sumber}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
+            <ScrollArea className="w-full">
+              <div className="min-w-[600px]">
+                <Table>
+                    <TableHeader className="bg-muted/50">
                     <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                        Tidak ada data. Silakan impor data baru.
-                      </TableCell>
+                        <TableHead className="text-[9px] font-black uppercase px-6">Kode</TableHead>
+                        <TableHead className="text-[9px] font-black uppercase px-6">Uraian</TableHead>
+                        <TableHead className="text-[9px] font-black uppercase px-6 text-right">Nominal</TableHead>
+                        <TableHead className="text-[9px] font-black uppercase px-6 text-center">Sumber</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                    {filteredData.length > 0 ? filteredData.map((item: ApbItem, i: number) => (
+                        <TableRow key={i} className="hover:bg-muted/20">
+                        <TableCell className="font-mono text-[10px] text-muted-foreground px-6">{item.kode}</TableCell>
+                        <TableCell className="px-6">
+                            <p className="text-xs font-bold leading-tight">{item.uraian}</p>
+                            <p className="text-[9px] font-black text-muted-foreground mt-1 uppercase">Vol: {item.volume} {item.satuan}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-black text-xs text-primary px-6">{formatIDR(item.nominal)}</TableCell>
+                        <TableCell className="text-center px-6">
+                            <Badge variant="outline" className={cn(
+                            "text-[9px] font-black px-2 py-0.5 rounded-lg",
+                            item.sumber === 'DD' ? "border-primary/20 text-primary bg-primary/5" : 
+                            item.sumber === 'ADD' ? "border-accent/20 text-accent bg-accent/5" : "border-primary/20 text-primary"
+                            )}>
+                            {item.sumber}
+                            </Badge>
+                        </TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                        <TableCell colSpan={4} className="h-32 text-center text-[10px] font-black uppercase text-muted-foreground">
+                            Data tidak ditemukan.
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+              </div>
+              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </CardContent>
         </Card>
       </div>
 
-      <section className="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Wallet className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-black text-primary uppercase tracking-tight text-sm">Ringkasan Bidang</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Akumulasi Anggaran per Bidang Utama</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map((bidang: number) => {
-            const sum = apbData.filter(d => d.bidang === bidang).reduce((acc, curr) => acc + curr.nominal, 0)
-            return (
-              <div key={bidang} className="p-4 rounded-2xl border bg-muted/5 hover:border-primary/30 transition-all group">
-                <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Bidang {bidang}</p>
-                <p className="text-[10px] font-bold text-primary group-hover:text-primary leading-tight mb-2 line-clamp-2 h-8">
-                  {BIDANG_NAMES[bidang]}
-                </p>
-                <p className="text-sm font-black tracking-tight">{formatIDR(sum)}</p>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Anda yakin ingin menghapus semua data?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Tindakan ini akan menghapus semua data rincian APBDes secara permanen. Data hanya bisa dipulihkan dengan mengimpor ulang file Excel.
-                </AlertDialogDescription>
+        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-8">
+            <AlertDialogHeader className="items-center text-center space-y-4">
+                <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="h-10 w-10 text-destructive" />
+                </div>
+                <div>
+                    <AlertDialogTitle className="text-xl font-black uppercase text-destructive">Hapus Semua Data?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-xs font-bold uppercase mt-1 leading-relaxed">
+                        Tindakan ini akan mengosongkan seluruh rincian APBDes secara permanen.
+                    </AlertDialogDescription>
+                </div>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteAll} className={cn(buttonVariants({variant: "destructive"}))}>Ya, Hapus Semua</AlertDialogAction>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-6">
+                <AlertDialogCancel className="w-full sm:flex-1 h-12 rounded-2xl font-bold uppercase border-none bg-muted/50">Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAll} className={cn("w-full sm:flex-1 h-12 rounded-2xl font-black uppercase", buttonVariants({variant: "destructive"}))}>Ya, Hapus Semua</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
