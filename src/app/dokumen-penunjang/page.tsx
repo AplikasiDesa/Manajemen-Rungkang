@@ -217,6 +217,17 @@ function DokumenContent() {
             jumlahOrang: quota
         };
         
+        const fixedPdfData = {
+            kegiatan: pdfData.title,
+            tanggal: pdfData.date,
+            location: pdfData.location,
+            time: pdfData.time,
+            participants: pdfData.participants,
+            nominal: pdfData.nominal,
+            tax: pdfData.tax,
+            jumlahOrang: pdfData.jumlahOrang,
+        };
+
         if (type === "daftar-hadir") {
           pdfBlob = await generateDaftarHadirPDF(fixedPdfData, userData?.logoBase64);
         } else {
