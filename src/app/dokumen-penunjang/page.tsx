@@ -211,7 +211,7 @@ function DokumenContent() {
             date: date, 
             location: location,
             time: time,
-            participants: finalParticipants.map(p => ({ name: p.name, position: p.jabatan || "", category: p.category || "" })), 
+            participants: finalParticipants.map(p => ({ name: p.name, jabatan: p.jabatan || "", category: p.category || "" })), 
             nominal: uangSakuNominal, 
             tax: uangSakuTax,
             jumlahOrang: quota
