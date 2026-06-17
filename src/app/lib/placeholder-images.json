@@ -1,0 +1,23 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "kegiatan-1",
+      "description": "Meeting documentation",
+      "imageUrl": "https://picsum.photos/seed/kegiatan1/600/400",
+      "imageHint": "meeting office"
+    },
+    {
+      "id": "kegiatan-2",
+      "description": "Field work report",
+      "imageUrl": "https://picsum.photos/seed/kegiatan2/600/400",
+      "imageHint": "field work"
+    },
+    {
+      "id": "sppd-1",
+      "description": "Travel ticket",
+      "imageUrl": "https://picsum.photos/seed/sppd1/600/400",
+      "imageHint": "ticket travel"
+    }
+  ]
+}

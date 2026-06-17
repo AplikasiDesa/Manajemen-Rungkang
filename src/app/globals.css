@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Forest Green + Slate Gray Theme - Profesional untuk Sistem Desa */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+    --primary: 195 100% 42%;      /* Forest Green #15803D - Warna utama */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 35% 20%;    /* Slate Gray #334155 - Warna sekunder */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 195 30% 97%;        /* Pale Green #F0FDF4 - Warna lembut */
+    --muted-foreground: 215 20% 40%;
+    --accent: 190 85% 55%;       /* Light Green #22C55E - Accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 195 25% 88%;
+    --input: 195 25% 93%;
+    --ring: 195 100% 42%;
+    --radius: 1rem;
+
+    /* Sidebar Variables - Pastikan Solid */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 195 100% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 195 30% 97%;
+    --sidebar-accent-foreground: 195 100% 42%;
+    --sidebar-border: 195 25% 93%;
+    --sidebar-ring: 195 100% 42%;
+  }
+
+  .dark {
+    --background: 215 25% 8%;
+    --foreground: 148 30% 85%;
+    --card: 215 25% 12%;
+    --card-foreground: 148 30% 85%;
+    --popover: 215 25% 8%;
+    --popover-foreground: 148 30% 85%;
+    --primary: 190 85% 55%;
+    --primary-foreground: 215 25% 8%;
+    --secondary: 215 25% 60%;
+    --secondary-foreground: 215 25% 8%;
+    --muted: 215 25% 20%;
+    --muted-foreground: 148 30% 70%;
+    --accent: 148 60% 55%;
+    --accent-foreground: 215 25% 8%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 25% 20%;
+    --input: 215 25% 15%;
+    --ring: 190 85% 55%;
+
+    --sidebar-background: 215 25% 12%;
+    --sidebar-foreground: 148 30% 85%;
+    --sidebar-primary: 190 85% 55%;
+    --sidebar-primary-foreground: 215 25% 8%;
+    --sidebar-accent: 215 25% 20%;
+    --sidebar-accent-foreground: 148 30% 85%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 190 85% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-body overflow-x-hidden;
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Custom Scrollbar for better UI on mobile */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
