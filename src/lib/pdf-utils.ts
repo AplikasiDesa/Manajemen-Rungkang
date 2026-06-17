@@ -815,7 +815,7 @@ export const generateSuratTugasPDF = async (values: any, logoBase64?: string | n
     const textWidth = pageWidth - textX - margin;
     const items = values.dasar ? values.dasar.split("\n").filter(Boolean) : [
           "Peraturan Bupati Cilacap Nomor 2 Tahun 2024 tentang Perjalanan Dinas.",
-          "Peraturan Desa Rungkang Nomor 09 Tahun 2025 tentang Anggaran Pendapatan dan Belanja Desa (APBDes) Tahun Anggaran 2026.",
+          "Peraturan Desa Rungkang Nomor 16 Tahun 2025 tentang Anggaran Pendapatan dan Belanja Desa (APBDes) Tahun Anggaran 2026.",
         ];
     items.forEach((item: string, index: number) => {
       ensurePageSpace(20);
