@@ -325,12 +325,12 @@ function EditorContent() {
                     <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-none px-4">
                         <SelectValue placeholder="Pilih Perangkat..." />
                     </SelectTrigger>
-                    <SelectContent>
-                        <ScrollArea className="h-[200px]">
-                            {kasiKaurList.map(o => (
-                                <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
-                            ))}
-                        </ScrollArea>
+                    <SelectContent className="max-h-[200px]">
+                        {kasiKaurList.map(o => (
+                            <SelectItem key={o.id} value={o.name}>
+                                {o.name}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
               </div>
@@ -351,13 +351,13 @@ function EditorContent() {
                     <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-none px-4">
                         <SelectValue placeholder="Pilih Anggota BPD..." />
                     </SelectTrigger>
-                    <SelectContent>
-                        <ScrollArea className="h-[200px]">
-                            {bpdList.map(o => (
-                                <SelectItem key={o.id} value={o.name}>{o.name}</SelectItem>
-                            ))}
-                        </ScrollArea>
-                    </SelectContent>
+                    <SelectContent className="max-h-[200px]">
+                      {bpdList.map(o => (
+                          <SelectItem key={o.id} value={o.name}>
+                              {o.name}
+                          </SelectItem>
+                      ))}
+                  </SelectContent>
                 </Select>
               </div>
            </div>
