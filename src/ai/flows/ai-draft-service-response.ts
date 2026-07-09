@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI assistant to help village administrators draft initial responses to service requests.
@@ -28,6 +29,7 @@ export async function aiDraftServiceResponse(input: AIDraftServiceResponseInput)
 
 const prompt = ai.definePrompt({
   name: 'draftServiceResponsePrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: AIDraftServiceResponseInputSchema},
   output: {schema: AIDraftServiceResponseOutputSchema},
   prompt: `Anda adalah asisten AI yang membantu administrator desa di DesaKU. Tugas Anda adalah membuat draf respons awal untuk permintaan layanan. Respons harus sopan, informatif, dan konsisten dengan komunikasi resmi desa. Sertakan instruksi langkah selanjutnya jika perlu.

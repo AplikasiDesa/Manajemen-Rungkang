@@ -56,7 +56,8 @@ export const generateDaftarHadirPDF = async (values: PDFData, logoBase64?: strin
 
     addHeaderDetail("Kegiatan", values.kegiatan);
     addHeaderDetail("Hari / Tanggal", format(d, "EEEE, d MMMM yyyy", { locale: localeID }));
-    addHeaderDetail("Waktu", values.time || "09:00 WIB - Selesai");
+    const displayTime = values.time ? `Pukul ${values.time} s.d selesai` : "Pukul 09:00 WIB s.d selesai";
+    addHeaderDetail("Waktu", displayTime);
     addHeaderDetail("Tempat", values.location || "Balai Desa Rungkang");
 
     currentY += 8;
@@ -143,10 +144,6 @@ export const generateDaftarHadirPDF = async (values: PDFData, logoBase64?: strin
     return doc.output("blob");
 }
 
-/**
- * Generator PDF Khusus untuk Peserta Posyandu (Balita, Lansia, dll)
- * Menggunakan data Nama | Alamat | TTD
- */
 export const generateDaftarHadirPesertaPDF = async (values: PDFData, logoBase64?: string | null): Promise<Blob> => {
     const doc = new jsPDF();
     const margin = 15;
@@ -179,7 +176,8 @@ export const generateDaftarHadirPesertaPDF = async (values: PDFData, logoBase64?
 
     addHeaderDetail("Kegiatan", values.kegiatan);
     addHeaderDetail("Hari / Tanggal", format(d, "EEEE, d MMMM yyyy", { locale: localeID }));
-    addHeaderDetail("Waktu", values.time || "09:00 WIB - Selesai");
+    const displayTime = values.time ? `Pukul ${values.time} s.d selesai` : "Pukul 09:00 WIB s.d selesai";
+    addHeaderDetail("Waktu", displayTime);
     addHeaderDetail("Tempat", values.location || "Balai Desa Rungkang");
 
     currentY += 8;
@@ -207,7 +205,6 @@ export const generateDaftarHadirPesertaPDF = async (values: PDFData, logoBase64?
     for (let i = 0; i < totalItems; i++) {
         const p = values.participants[i] || { name: "", jabatan: "" };
         
-        // Split text for dynamic height if name or address is long
         const nameLines = doc.splitTextToSize((p.name || "").toUpperCase(), colW[1] - 4);
         const addressLines = doc.splitTextToSize((p.jabatan || "").toUpperCase(), colW[2] - 4);
         const lineCount = Math.max(nameLines.length, addressLines.length, 1);
@@ -265,7 +262,6 @@ export const generateDaftarHadirPesertaPDF = async (values: PDFData, logoBase64?
 }
 
 export const generateDaftarHadirBalitaPDF = async (values: PDFData, logoBase64?: string | null): Promise<Blob> => {
-    // Redirect to the updated peserta function which handles both balita and others
     return generateDaftarHadirPesertaPDF(values, logoBase64);
 }
 
@@ -314,8 +310,9 @@ export const generateUangSakuPDF = async (values: PDFData, logoBase64?: string |
         doc.text(label, margin, currentY);
         doc.text(":", margin + 30, currentY);
         doc.setFont("helvetica", "normal");
-        doc.text(text || "-", margin + 33, currentY);
-        currentY += 6;
+        const lines = doc.splitTextToSize(text || "-", pageWidth - margin - (margin + 33));
+        doc.text(lines, margin + 33, currentY);
+        currentY += (lines.length * 6);
     };
     addHeaderRow("Kegiatan", values.kegiatan);
     addHeaderRow(
@@ -323,6 +320,8 @@ export const generateUangSakuPDF = async (values: PDFData, logoBase64?: string |
         format(d, "EEEE, d MMMM yyyy", { locale: localeID })
     );
     addHeaderRow("Tempat", values.location || "Balai Desa Rungkang");
+    const displayTime = values.time ? `Pukul ${values.time} s.d selesai` : "Pukul 09:00 WIB s.d selesai";
+    addHeaderRow("Waktu", displayTime);
     currentY += 4;
     drawTableHeader();
 

@@ -51,6 +51,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
+    "Apbdes": {
+      "title": "Apbdes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tahun": { "type": "string" },
+        "bidang": { "type": "number" },
+        "kode": { "type": "string" },
+        "uraian": { "type": "string" },
+        "volume": { "type": "string" },
+        "satuan": { "type": "string" },
+        "nominal": { "type": "number" },
+        "sumber": { "type": "string" }
+      }
+    },
     "User": {
       "title": "User",
       "type": "object",
@@ -81,6 +96,10 @@
     "/physical_activities/{docId}": {
       "schema": { "$ref": "#/backend/entities/PhysicalActivity" },
       "description": "Activities for physical document automation."
+    },
+    "/apbdes/{docId}": {
+      "schema": { "$ref": "#/backend/entities/Apbdes" },
+      "description": "Village budget records."
     }
   }
 }

@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Archive, FileText, Scale, Loader2, Plus, Search, ExternalLink, Trash2, AlertCircle, Database, Layers, Activity } from "lucide-react"
+import { Archive, FileText, Scale, Loader2, Plus, Search, ExternalLink, Trash2, AlertCircle, Database, Layers, Activity, Calendar } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, doc, orderBy, query } from "firebase/firestore"
+import { collection, doc, orderBy, query, where } from "firebase/firestore"
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { GOOGLE_CONFIG } from "@/lib/google-config"
-import { APB_DATA, BIDANG_NAMES } from "@/lib/apbdes-data"
+import { BIDANG_NAMES } from "@/lib/apbdes-data"
 
 export default function ArsipDokumenPage() {
   const { user } = useUser()
@@ -26,7 +26,8 @@ export default function ArsipDokumenPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
 
-  // Form states for SPJ (Integrated with APBDes)
+  // Form states for SPJ (Integrated with APBDes Firestore)
+  const [spjTahun, setSpjTahun] = useState(new Date().getFullYear().toString())
   const [spjBidang, setSpjBidang] = useState("")
   const [spjSumber, setSpjSumber] = useState("")
   const [spjKegiatan, setSpjKegiatan] = useState("")
@@ -38,17 +39,30 @@ export default function ArsipDokumenPage() {
   const [phJenisManual, setPhPhJenisManual] = useState("")
   const [phNomor, setPhNomor] = useState("")
 
+  // LIVE APBDes Fetching from Firestore filtered by Tahun
+  const apbQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(
+      collection(db, "apbdes"), 
+      where("tahun", "==", spjTahun),
+      orderBy("kode", "asc")
+    )
+  }, [db, user, spjTahun])
+  const { data: apbData } = useCollection<any>(apbQuery)
+
   // APBDes Filtering logic for SPJ
   const filteredSources = useMemo(() => {
-    if (!spjBidang) return []
-    const sources = APB_DATA.filter(item => item.bidang.toString() === spjBidang).map(item => item.sumber)
+    if (!spjBidang || !apbData) return []
+    const sources = apbData
+      .filter((item: any) => item.bidang.toString() === spjBidang)
+      .map((item: any) => item.sumber)
     return Array.from(new Set(sources))
-  }, [spjBidang])
+  }, [spjBidang, apbData])
 
   const filteredActivities = useMemo(() => {
-    if (!spjBidang || !spjSumber) return []
-    return APB_DATA.filter(item => item.bidang.toString() === spjBidang && item.sumber === spjSumber)
-  }, [spjBidang, spjSumber])
+    if (!spjBidang || !spjSumber || !apbData) return []
+    return apbData.filter((item: any) => item.bidang.toString() === spjBidang && item.sumber === spjSumber)
+  }, [spjBidang, spjSumber, apbData])
 
   // GLOBAL DATA FETCHING
   const villageSettingsRef = useMemoFirebase(() => {
@@ -123,7 +137,7 @@ export default function ArsipDokumenPage() {
   }
 
   const handleSaveSpj = async () => {
-    if (!user || !spjBidang || !spjKegiatan || !spjSumber || !spjBulan || !selectedFile) {
+    if (!user || !spjTahun || !spjBidang || !spjKegiatan || !spjSumber || !spjBulan || !selectedFile) {
       toast({ variant: "destructive", title: "Data Tidak Lengkap", description: "Mohon isi semua bidang dan pilih file PDF." })
       return
     }
@@ -136,12 +150,13 @@ export default function ArsipDokumenPage() {
 
     setIsUploading(true)
     try {
-      const fileName = `${spjKegiatan} | ${spjSumber} | ${spjBulan}.pdf`
+      const fileName = `${spjKegiatan} | ${spjSumber} | TA ${spjTahun} | ${spjBulan}.pdf`
       const driveResult = await uploadToDrive(fileName, targetFolderId)
       
       if (driveResult) {
         const docData = {
           createdBy: user.uid,
+          tahun: spjTahun,
           bidang: spjBidang,
           kegiatan: spjKegiatan,
           sumberAnggaran: spjSumber,
@@ -263,6 +278,22 @@ export default function ArsipDokumenPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+                    <Calendar className="h-3 w-3" /> Pilih Tahun Anggaran
+                  </Label>
+                  <Select value={spjTahun} onValueChange={(val) => { setSpjTahun(val); setSpjBidang(""); setSpjSumber(""); setSpjKegiatan(""); }}>
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue placeholder="Pilih Tahun..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["2024", "2025", "2026", "2027", "2028", "2029", "2030"].map(y => (
+                        <SelectItem key={y} value={y}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
                     <Layers className="h-3 w-3" /> Pilih Bidang
                   </Label>
                   <Select value={spjBidang} onValueChange={(val) => { setSpjBidang(val); setSpjSumber(""); setSpjKegiatan(""); }}>
@@ -279,31 +310,35 @@ export default function ArsipDokumenPage() {
 
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-                    <Database className="h-3 w-3" /> Sumber Anggaran
+                    <Database className="h-3 w-3" /> Sumber Anggaran (TA {spjTahun})
                   </Label>
                   <Select value={spjSumber} disabled={!spjBidang} onValueChange={(val) => { setSpjSumber(val); setSpjKegiatan(""); }}>
                     <SelectTrigger className="h-12 rounded-xl">
                       <SelectValue placeholder="Pilih Sumber..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredSources.map(s => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
+                      {filteredSources.length > 0 ? (
+                        filteredSources.map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>Data anggaran tahun ini kosong</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-                    <Activity className="h-3 w-3" /> Nama Kegiatan (Dari APBDes)
+                    <Activity className="h-3 w-3" /> Nama Kegiatan
                   </Label>
                   <Select value={spjKegiatan} disabled={!spjSumber} onValueChange={setSpjKegiatan}>
                     <SelectTrigger className="h-12 rounded-xl">
                       <SelectValue placeholder="Pilih Kegiatan..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredActivities.map(item => (
-                        <SelectItem key={item.kode} value={item.uraian}>{item.uraian}</SelectItem>
+                      {filteredActivities.map((item: any) => (
+                        <SelectItem key={item.id} value={item.uraian}>{item.uraian}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -333,7 +368,7 @@ export default function ArsipDokumenPage() {
                 onClick={handleSaveSpj}
               >
                 {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-                Arsipkan SPJ
+                Arsipkan SPJ TA {spjTahun}
               </Button>
             </CardContent>
           </Card>
@@ -358,7 +393,7 @@ export default function ArsipDokumenPage() {
                                 </div>
                                 <div className="min-w-0">
                                     <p className="font-bold text-sm truncate">{item.kegiatan}</p>
-                                    <p className="text-[10px] text-muted-foreground font-medium uppercase">{item.sumberAnggaran} • {item.bulan}</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium uppercase">TA {item.tahun} • {item.sumberAnggaran} • {item.bulan}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

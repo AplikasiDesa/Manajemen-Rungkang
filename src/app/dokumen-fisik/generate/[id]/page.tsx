@@ -21,8 +21,6 @@ import {
   ShieldCheck, 
   Edit,
   History,
-  Archive,
-  FolderOpen,
   FileText,
   Download,
   AlertTriangle,
@@ -32,12 +30,19 @@ import {
   Calendar,
   Briefcase,
   Sparkles,
-  ExternalLink,
   Camera,
-  ImagePlus,
   CloudUpload,
   Banknote,
-  ClipboardList
+  ClipboardList,
+  ShoppingCart,
+  Plus,
+  Trash2,
+  Percent,
+  MapPin,
+  DollarSign,
+  Info,
+  Store,
+  Scale
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
@@ -49,7 +54,9 @@ import { ImageUploader } from "@/components/ui/image-uploader"
 import { callAppsScript } from "@/app/agenda/actions"
 import { format } from "date-fns"
 import { id as localeID } from "date-fns/locale"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export default function GenerateHubPage() {
   const params = useParams()
@@ -58,8 +65,6 @@ export default function GenerateHubPage() {
   const db = useFirestore()
   const { toast } = useToast()
   
-  const [isSavingRPD, setIsSavingRPD] = useState(false)
-  const [isSavingPencairan, setIsSavingPencairan] = useState(false)
   const [isSavingPBJ, setIsSavingPBJ] = useState(false)
   const [isSavingSPJ, setIsSavingSPJ] = useState(false)
   const [isGenerating, setIsGenerating] = useState<string | null>(null)
@@ -78,23 +83,13 @@ export default function GenerateHubPage() {
   }, [db, user])
   const { data: villageSettings } = useDoc(villageSettingsRef)
 
-  // 2. Fetch Personnel for Dropdowns
+  // 2. Fetch Personnel for Dropdowns and Signature
   const personnelRef = useMemoFirebase(() => (db && user) ? collection(db, "personnel") : null, [db, user])
   const { data: officials } = useCollection(personnelRef)
 
+  const sekdesName = useMemo(() => officials?.find(o => o.jabatan?.includes("SEKRETARIS DESA"))?.name || "WASIMAN", [officials]);
+
   // 3. Form States
-  const [rpdData, setRpdData] = useState<any>({
-    nomor_rpd: "",
-    tanggal_rpd: format(new Date(), "yyyy-MM-dd"),
-    catatan_rpd: ""
-  })
-
-  const [pencairanData, setPencairanData] = useState<any>({
-    nomor_pencairan: "",
-    tanggal_pencairan: format(new Date(), "yyyy-MM-dd"),
-    perihal_pencairan: ""
-  })
-
   const [pbjData, setPbjData] = useState<any>({
     nama_ketua_tpk: "", nama_sekretaris_tpk: "", nama_anggota_tpk: "",
     nomor_und_permintaan_penawaran: "", tanggal_und_permintaan_penawaran: "",
@@ -112,26 +107,65 @@ export default function GenerateHubPage() {
     nama_cvpemenang: "", nama_pemilik_cvpemenang: "", alamat_cvpemenang: "", nominal_cvpemenang: 0, nominal_cvpemenang_hanya_terbilang: "",
     no_penawaran_cvpemenang: "", tanggal_penawaran_cvpemenang: "",
     nomor_ba_pembahasan_pengadaan: "", tanggal_ba_pembahasan_pengadaan: "", pukul_ba_pembahasan_pengadaan: "Pukul 09.00 WIB",
-    tempat_ba: "Balai Desa Rungkang", perwakilan_bpd: "", tanggal_paktaintegritas_tpk: "",
+    tempat_ba: "Balai Desa Cinangsi", perwakilan_bpd: "", tanggal_paktaintegritas_tpk: "",
     nomor_perjanjian_kerja: "", nomor_spk: "", tanggal_spk: "", no_pengumuman_pemenang_bpj: ""
   })
 
   const [spjData, setSpjData] = useState<any>({
+    photoMode: "fisik", // "fisik" | "non-fisik"
     physicalPhotos: { p0: [], p50: [], p100: [] },
+    nonPhysicalPhotos: { f1: [], f2: [] },
     nomor_bast: "",
-    tanggal_bast: format(new Date(), "yyyy-MM-dd")
+    tanggal_bast: format(new Date(), "yyyy-MM-dd"),
+    // Survey Harga
+    num_shops: 3,
+    nama_toko1: "",
+    nama_toko2: "",
+    nama_toko3: "",
+    nama_toko4: "",
+    survey_items: [{ no: 1, nama: "", satuan: "", h1: "", h2: "", h3: "", h4: "", hps: "", ppn: "0", pph: "0" }],
+    // BA HPS
+    ba_hps_date: format(new Date(), "yyyy-MM-dd"),
+    ba_hps_time: "09:00",
+    ba_hps_location: "Balai Desa Cinangsi",
+    ba_hps_leader_name: "",
+    ba_hps_secretary_name: "",
+    ba_hps_narsum1_name: "",
+    ba_hps_narsum1_inst: "",
+    ba_hps_narsum2_name: "",
+    ba_hps_narsum2_inst: "",
+    selected_shop_hps: ""
   })
 
   useEffect(() => {
     if (activity) {
-      setRpdData((prev: any) => ({ ...prev, ...activity }))
-      setPencairanData((prev: any) => ({ ...prev, ...activity }))
       setPbjData((prev: any) => ({ ...prev, ...activity }))
       setSpjData((prev: any) => ({ 
         ...prev, 
+        ...activity,
+        photoMode: activity.photoMode || "fisik",
         physicalPhotos: activity.physicalPhotos || { p0: [], p50: [], p100: [] },
+        nonPhysicalPhotos: activity.nonPhysicalPhotos || { f1: [], f2: [] },
         nomor_bast: activity.nomor_bast || "",
-        tanggal_bast: activity.tanggal_bast || format(new Date(), "yyyy-MM-dd")
+        tanggal_bast: activity.tanggal_bast || format(new Date(), "yyyy-MM-dd"),
+        num_shops: activity.num_shops || 3,
+        nama_toko1: activity.nama_toko1 || "",
+        nama_toko2: activity.nama_toko2 || "",
+        nama_toko3: activity.nama_toko3 || "",
+        nama_toko4: activity.nama_toko4 || "",
+        survey_items: activity.survey_items && activity.survey_items.length > 0 
+          ? activity.survey_items 
+          : [{ no: 1, nama: "", satuan: "", h1: "", h2: "", h3: "", h4: "", hps: "", ppn: "0", pph: "0" }],
+        ba_hps_date: activity.ba_hps_date || format(new Date(), "yyyy-MM-dd"),
+        ba_hps_time: activity.ba_hps_time || "09:00",
+        ba_hps_location: activity.ba_hps_location || "Balai Desa Cinangsi",
+        ba_hps_leader_name: activity.ba_hps_leader_name || "",
+        ba_hps_secretary_name: activity.ba_hps_secretary_name || "",
+        ba_hps_narsum1_name: activity.ba_hps_narsum1_name || "",
+        ba_hps_narsum1_inst: activity.ba_hps_narsum1_inst || "",
+        ba_hps_narsum2_name: activity.ba_hps_narsum2_name || "",
+        ba_hps_narsum2_inst: activity.ba_hps_narsum2_inst || "",
+        selected_shop_hps: activity.selected_shop_hps || ""
       }))
     }
   }, [activity])
@@ -189,8 +223,6 @@ export default function GenerateHubPage() {
       const finalNum = `027/${seq}/${subCode}/${year}`;
       
       if (field === "nomor_bast") setSpjData((p:any) => ({ ...p, [field]: finalNum }));
-      else if (field === "nomor_rpd") setRpdData((p:any) => ({ ...p, [field]: finalNum }));
-      else if (field === "nomor_pencairan") setPencairanData((p:any) => ({ ...p, [field]: finalNum }));
       else updatePbjField(field, finalNum);
 
       toast({ title: "Nomor Ditarik", description: finalNum });
@@ -204,8 +236,6 @@ export default function GenerateHubPage() {
   const handleSaveToAgenda = async (field: string, subCode: string) => {
     let value = "";
     if (field === "nomor_bast") value = spjData[field];
-    else if (field === "nomor_rpd") value = rpdData[field];
-    else if (field === "nomor_pencairan") value = pencairanData[field];
     else value = pbjData[field];
 
     if (!db || !user || !value) {
@@ -244,11 +274,30 @@ export default function GenerateHubPage() {
     }
   }
 
+  const handleClearPhotoHistory = async () => {
+    if (!confirm("Hapus seluruh histori foto yang sudah diunggah? Tindakan ini tidak dapat dibatalkan.")) return;
+    
+    const clearedData = {
+      ...spjData,
+      physicalPhotos: { p0: [], p50: [], p100: [] },
+      nonPhysicalPhotos: { f1: [], f2: [] }
+    };
+    
+    setSpjData(clearedData);
+    await handleGenericSave(clearedData, setIsSavingSPJ);
+    toast({ title: "Histori Dihapus", description: "Daftar foto telah dikosongkan." });
+  }
+
   const handleGeneratePDF = async (docType: string, label: string) => {
     if (!activity) return
     setIsGenerating(docType)
     try {
-      const pdfBlob = await generatePhysicalDocPDF(docType, { ...activity, ...pbjData, ...spjData, ...rpdData, ...pencairanData }, villageSettings?.logoBase64)
+      const pdfBlob = await generatePhysicalDocPDF(docType, { 
+        ...activity, 
+        ...pbjData, 
+        ...spjData, 
+        nama_sekdes: sekdesName 
+      }, villageSettings?.logoBase64)
       const url = URL.createObjectURL(pdfBlob)
       window.open(url, "_blank")
     } catch (e) {
@@ -264,14 +313,20 @@ export default function GenerateHubPage() {
     setLastError(null)
     try {
       let actualTemplate = docType;
-      if (docType === 'rpd_sistem') actualTemplate = '1. RPD Sisiem.docx';
-      if (docType === 'pencairan_sistem') actualTemplate = '2. Pencairan Sistem.docx';
       if (docType === 'pbj_sistem') actualTemplate = 'PBJ SISTEM.docx';
 
       const response = await fetch('/api/generate-docx/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { ...activity, ...pbjData, ...spjData, ...rpdData, ...pencairanData }, type: actualTemplate }),
+        body: JSON.stringify({ 
+          data: { 
+            ...activity, 
+            ...pbjData, 
+            ...spjData, 
+            nama_sekdes: sekdesName 
+          }, 
+          type: actualTemplate 
+        }),
       });
       if (!response.ok) {
         const errorBody = await response.json();
@@ -315,17 +370,40 @@ export default function GenerateHubPage() {
     </div>
   );
 
+  const updateSurveyItem = (index: number, field: string, value: string) => {
+    const newItems = [...spjData.survey_items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setSpjData({ ...spjData, survey_items: newItems });
+  }
+
+  const addSurveyRow = () => {
+    const newItems = [...spjData.survey_items];
+    newItems.push({ no: newItems.length + 1, nama: "", satuan: "", h1: "", h2: "", h3: "", h4: "", hps: "", ppn: "0", pph: "0" });
+    setSpjData({ ...spjData, survey_items: newItems });
+  }
+
+  const removeSurveyRow = (index: number) => {
+    if (spjData.survey_items.length <= 1) return;
+    const newItems = spjData.survey_items.filter((_:any, i:number) => i !== index).map((item:any, i:number) => ({ ...item, no: i + 1 }));
+    setSpjData({ ...spjData, survey_items: newItems });
+  }
+
   if (isDataLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary/30" /></div>
 
   const sections = [
-    { id: "rpd", label: "RPD", icon: Coins, color: "text-blue-600" },
-    { id: "pencairan", label: "Dok Pencairan", icon: Banknote, color: "text-teal-600" },
     { id: "spj", label: "SPJ", icon: FileCheck, color: "text-orange-600" },
     { id: "pbj", label: "PBJ", icon: ShieldCheck, color: "text-purple-600" }
   ]
 
+  const shopOptions = [
+    { id: "nama_toko1", name: spjData.nama_toko1 },
+    { id: "nama_toko2", name: spjData.nama_toko2 },
+    { id: "nama_toko3", name: spjData.nama_toko3 },
+    { id: "nama_toko4", name: spjData.nama_toko4 }
+  ].filter(s => s.name && s.name.trim() !== "").slice(0, spjData.num_shops || 3);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-32 p-4 md:p-8">
+    <div className="max-w-7xl mx-auto space-y-6 pb-32 p-4 md:p-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-full bg-white shadow-sm h-12 w-12">
@@ -341,6 +419,55 @@ export default function GenerateHubPage() {
         </Button>
       </header>
 
+      {/* RINGKASAN PROYEK DI ATAS SENDIRI */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-none shadow-xl rounded-[2rem] bg-primary text-primary-foreground overflow-hidden">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[10px] font-black uppercase flex items-center gap-2 opacity-80 tracking-[0.15em]">
+              <History className="h-4 w-4" /> Informasi Utama Pembangunan
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-2 flex flex-col sm:flex-row justify-between gap-6">
+            <div className="space-y-4 flex-1">
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase opacity-60 flex items-center gap-1.5"><MapPin className="h-3 w-3" /> Lokasi Kegiatan</p>
+                <p className="text-sm font-bold uppercase leading-tight">{activity?.lokasi}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase opacity-60 flex items-center gap-1.5"><DollarSign className="h-3 w-3" /> Total Anggaran</p>
+                <p className="text-3xl font-black tracking-tighter">Rp {new Intl.NumberFormat('id-ID').format(pbjData.nominal_cvpemenang || activity?.anggaran || 0)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+               <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/20">
+                  <Coins className="h-7 w-7 text-white" />
+               </div>
+               <div className="space-y-0.5">
+                  <p className="text-[8px] font-black uppercase opacity-60">Sumber Dana</p>
+                  <p className="text-xs font-black uppercase">{activity?.sumber_dana || 'Dana Desa (DD)'}</p>
+               </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="grid grid-cols-2 gap-4">
+           <Card className="border-none shadow-lg rounded-[2rem] bg-white flex flex-col items-center justify-center p-6 text-center border-t-4 border-emerald-500">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
+                <FileCheck className="h-5 w-5 text-emerald-600" />
+              </div>
+              <p className="text-[9px] font-black text-slate-400 uppercase">Status Proyek</p>
+              <p className="text-xs font-black text-slate-900 uppercase mt-1">SIAP DOKUMEN</p>
+           </Card>
+           <Card className="border-none shadow-lg rounded-[2rem] bg-white flex flex-col items-center justify-center p-6 text-center border-t-4 border-blue-500">
+              <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+              <p className="text-[9px] font-black text-slate-400 uppercase">Tahun Anggaran</p>
+              <p className="text-lg font-black text-slate-900">{activity?.tahunAnggaran || '2026'}</p>
+           </Card>
+        </div>
+      </div>
+
       {lastError && (
         <div className="p-6 bg-red-50 border-2 border-red-200 rounded-[2.5rem] flex items-start gap-4">
             <AlertTriangle className="h-6 w-6 text-red-500" />
@@ -351,20 +478,9 @@ export default function GenerateHubPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="lg:col-span-1 space-y-6">
-            <Card className="border-none shadow-2xl rounded-[2.5rem] bg-primary text-primary-foreground overflow-hidden">
-                <CardHeader className="p-8 pb-4"><CardTitle className="text-xs font-black uppercase flex items-center gap-2 opacity-80 tracking-widest"><History className="h-4 w-4" /> Ringkasan Proyek</CardTitle></CardHeader>
-                <CardContent className="p-8 pt-4 space-y-6">
-                    <div className="space-y-1"><p className="text-[9px] font-black uppercase opacity-60">Lokasi</p><p className="text-xs font-bold leading-tight uppercase">{activity?.lokasi}</p></div>
-                    <div className="space-y-1"><p className="text-[9px] font-black uppercase opacity-60">Anggaran</p><p className="text-2xl font-black tracking-tight">Rp {new Intl.NumberFormat('id-ID').format(pbjData.nominal_cvpemenang || activity?.anggaran || 0)}</p></div>
-                </CardContent>
-            </Card>
-        </aside>
-
-        <div className="lg:col-span-3">
-            <Tabs defaultValue="rpd" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 h-20 bg-muted/50 p-2 rounded-2xl mb-10 shadow-inner gap-2">
+      <div className="w-full">
+            <Tabs defaultValue="spj" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-20 bg-muted/50 p-2 rounded-2xl mb-10 shadow-inner gap-2">
                     {sections.map((s) => (
                         <TabsTrigger key={s.id} value={s.id} className="flex flex-col gap-1 text-[9px] font-black uppercase rounded-xl h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all">
                             <s.icon className="h-4 w-4" /><span>{s.label}</span>
@@ -372,113 +488,70 @@ export default function GenerateHubPage() {
                     ))}
                 </TabsList>
 
-                {/* TAB 1: RPD */}
-                <TabsContent value="rpd" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-blue-600">
-                        <CardHeader className="p-8 bg-blue-50/50">
-                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><Coins className="h-6 w-6 text-blue-600" /> Formulir Teknis RPD</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-8">
-                            <ScrollArea className="h-[400px] pr-4">
-                                <div className="space-y-8 pb-6">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <LabelDocx label="Nomor RPD" placeholder="nomor_rpd" onTarik={() => handlePullNumber("nomor_rpd", "RPD")} isTarikLoading={isFetchingNumber === "nomor_rpd"} onSimpan={() => handleSaveToAgenda("nomor_rpd", "RPD")} isSimpanLoading={isSavingToAgenda === "nomor_rpd"} />
-                                            <Input value={rpdData.nomor_rpd} onChange={e => setRpdData({...rpdData, nomor_rpd: e.target.value})} className="font-mono text-xs" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <LabelDocx label="Tanggal RPD" placeholder="tanggal_rpd" />
-                                            <Input type="date" value={rpdData.tanggal_rpd} onChange={e => setRpdData({...rpdData, tanggal_rpd: e.target.value})} />
-                                        </div>
-                                        <div className="space-y-2 sm:col-span-2">
-                                            <LabelDocx label="Catatan / Keperluan" placeholder="catatan_rpd" />
-                                            <Input value={rpdData.catatan_rpd} onChange={e => setRpdData({...rpdData, catatan_rpd: e.target.value})} placeholder="Pencairan Tahap I / 100%..." />
-                                        </div>
-                                    </div>
-                                </div>
-                            </ScrollArea>
-                            <div className="pt-6 border-t flex flex-col sm:flex-row gap-4">
-                                <Button onClick={() => handleGenericSave(rpdData, setIsSavingRPD)} disabled={isSavingRPD} className="h-14 flex-1 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase shadow-xl gap-3">
-                                    {isSavingRPD ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Isian RPD
-                                </Button>
-                                <Button onClick={() => handleDownloadDocx('rpd_sistem', 'RPD Sistem')} disabled={!!isGeneratingDocx} variant="outline" className="h-14 flex-1 rounded-2xl border-blue-200 text-blue-600 font-black uppercase gap-2">
-                                    {isGeneratingDocx === 'rpd_sistem' ? <Loader2 className="animate-spin h-4 w-4" /> : <Download className="h-4 w-4" />} UNDUH DOCX RPD
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* TAB 2: DOK PENCAIRAN */}
-                <TabsContent value="pencairan" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-teal-600">
-                        <CardHeader className="p-8 bg-teal-50/50">
-                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><Banknote className="h-6 w-6 text-teal-600" /> Formulir Dokumen Pencairan</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-8">
-                            <ScrollArea className="h-[400px] pr-4">
-                                <div className="space-y-8 pb-6">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <LabelDocx label="Nomor Surat Pencairan" placeholder="nomor_pencairan" onTarik={() => handlePullNumber("nomor_pencairan", "CAIR")} isTarikLoading={isFetchingNumber === "nomor_pencairan"} onSimpan={() => handleSaveToAgenda("nomor_pencairan", "CAIR")} isSimpanLoading={isSavingToAgenda === "nomor_pencairan"} />
-                                            <Input value={pencairanData.nomor_pencairan} onChange={e => setPencairanData({...pencairanData, nomor_pencairan: e.target.value})} className="font-mono text-xs" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <LabelDocx label="Tanggal Surat" placeholder="tanggal_pencairan" />
-                                            <Input type="date" value={pencairanData.tanggal_pencairan} onChange={e => setPencairanData({...pencairanData, tanggal_pencairan: e.target.value})} />
-                                        </div>
-                                        <div className="space-y-2 sm:col-span-2">
-                                            <LabelDocx label="Perihal Pencairan" placeholder="perihal_pencairan" />
-                                            <Input value={pencairanData.perihal_pencairan} onChange={e => setPencairanData({...pencairanData, perihal_pencairan: e.target.value})} placeholder="Permohonan Pencairan Dana Tahap 1..." />
-                                        </div>
-                                    </div>
-                                </div>
-                            </ScrollArea>
-                            <div className="pt-6 border-t flex flex-col sm:flex-row gap-4">
-                                <Button onClick={() => handleGenericSave(pencairanData, setIsSavingPencairan)} disabled={isSavingPencairan} className="h-14 flex-1 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black uppercase shadow-xl gap-3">
-                                    {isSavingPencairan ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Isian Pencairan
-                                </Button>
-                                <Button onClick={() => handleDownloadDocx('pencairan_sistem', 'Pencairan Sistem')} disabled={!!isGeneratingDocx} variant="outline" className="h-14 flex-1 rounded-2xl border-teal-200 text-teal-600 font-black uppercase gap-2">
-                                    {isGeneratingDocx === 'pencairan_sistem' ? <Loader2 className="animate-spin h-4 w-4" /> : <Download className="h-4 w-4" />} UNDUH DOCX PENCAIRAN
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* TAB 3: SPJ */}
+                {/* TAB 1: SPJ */}
                 <TabsContent value="spj" className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <Card className="border-none shadow-xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
+                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
                         <CardHeader className="p-8 bg-orange-50/50">
-                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><Camera className="h-6 w-6 text-orange-600" /> 1. Cetak Foto Fisik</CardTitle>
+                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><Camera className="h-6 w-6 text-orange-600" /> 1. Cetak Foto Fisik dan Non Fisik</CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 space-y-10">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="space-y-4">
-                                    <Badge className="bg-orange-600 font-black">HALAMAN 1 (0%)</Badge>
-                                    <ImageUploader label="Foto 0%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p0: [...p.physicalPhotos.p0, ...urls] } }))} />
-                                </div>
-                                <div className="space-y-4">
-                                    <Badge className="bg-orange-600 font-black">HALAMAN 2 (50%)</Badge>
-                                    <ImageUploader label="Foto 50%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p50: [...p.physicalPhotos.p50, ...urls] } }))} />
-                                </div>
-                                <div className="space-y-4">
-                                    <Badge className="bg-orange-600 font-black">HALAMAN 3 (100%)</Badge>
-                                    <ImageUploader label="Foto 100%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p100: [...p.physicalPhotos.p100, ...urls] } }))} />
-                                </div>
+                            <div className="space-y-4 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                                <Label className="text-[10px] font-black uppercase text-primary tracking-widest ml-1">Pilih Mode Dokumentasi</Label>
+                                <RadioGroup value={spjData.photoMode} onValueChange={v => setSpjData({...spjData, photoMode: v})} className="flex gap-6">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="fisik" id="mode-fisik" />
+                                        <Label htmlFor="mode-fisik" className="font-bold text-sm">FOTO FISIK (PROGRES %)</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="non-fisik" id="mode-non-fisik" />
+                                        <Label htmlFor="mode-non-fisik" className="font-bold text-sm">FOTO NON FISIK (BUKTI KEGIATAN)</Label>
+                                    </div>
+                                </RadioGroup>
                             </div>
-                            <div className="flex gap-4 pt-6 border-t">
+
+                            {spjData.photoMode === "fisik" ? (
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in">
+                                  <div className="space-y-4">
+                                      <Badge className="bg-orange-600 font-black">HALAMAN 1 (0%)</Badge>
+                                      <ImageUploader label="Foto 0%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p0: [...p.physicalPhotos.p0, ...urls] } }))} />
+                                  </div>
+                                  <div className="space-y-4">
+                                      <Badge className="bg-orange-600 font-black">HALAMAN 2 (50%)</Badge>
+                                      <ImageUploader label="Foto 50%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p50: [...p.physicalPhotos.p50, ...urls] } }))} />
+                                  </div>
+                                  <div className="space-y-4">
+                                      <Badge className="bg-orange-600 font-black">HALAMAN 3 (100%)</Badge>
+                                      <ImageUploader label="Foto 100%" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, physicalPhotos: { ...p.physicalPhotos, p100: [...p.physicalPhotos.p100, ...urls] } }))} />
+                                  </div>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in">
+                                  <div className="space-y-4">
+                                      <Badge className="bg-primary font-black">DOKUMENTASI FOTO 1</Badge>
+                                      <ImageUploader label="Foto Bukti 1" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, nonPhysicalPhotos: { ...p.nonPhysicalPhotos, f1: [...p.nonPhysicalPhotos.f1, ...urls] } }))} />
+                                  </div>
+                                  <div className="space-y-4">
+                                      <Badge className="bg-primary font-black">DOKUMENTASI FOTO 2</Badge>
+                                      <ImageUploader label="Foto Bukti 2" onUploadComplete={(urls) => setSpjData((p:any) => ({ ...p, nonPhysicalPhotos: { ...p.nonPhysicalPhotos, f2: [...p.nonPhysicalPhotos.f2, ...urls] } }))} />
+                                  </div>
+                              </div>
+                            )}
+
+                            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
                                 <Button onClick={() => handleGenericSave(spjData, setIsSavingSPJ)} disabled={isSavingSPJ} className="h-14 flex-1 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black uppercase shadow-xl gap-3">
-                                    {isSavingSPJ ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Foto
+                                    {isSavingSPJ ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Data Foto
                                 </Button>
-                                <Button onClick={() => handleGeneratePDF('spj_foto_fisik', 'Foto Fisik')} disabled={!!isGenerating} variant="outline" className="h-14 flex-1 rounded-2xl border-orange-200 text-orange-600 font-black uppercase">
-                                    {isGenerating === 'spj_foto_fisik' ? <Loader2 className="animate-spin h-5 w-5" /> : <Printer className="h-5 w-5 mr-2" />} Cetak PDF Progres
+                                <Button onClick={() => handleGeneratePDF('spj_foto_fisik', 'Laporan Dokumentasi Foto')} disabled={!!isGenerating} variant="outline" className="h-14 flex-1 rounded-2xl border-orange-200 text-orange-600 font-black uppercase">
+                                    {isGenerating === 'spj_foto_fisik' ? <Loader2 className="h-5 w-5" /> : <Printer className="h-5 w-5 mr-2" />} Cetak PDF Dokumentasi
+                                </Button>
+                                <Button onClick={handleClearPhotoHistory} disabled={isSavingSPJ} variant="ghost" className="h-14 rounded-2xl text-destructive hover:bg-destructive/10 font-black uppercase gap-2">
+                                    <Trash2 className="h-5 w-5" /> Hapus Histori Foto
                                 </Button>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
+                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
                         <CardHeader className="p-8 bg-orange-50/50">
                             <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><FileCheck className="h-6 w-6 text-orange-600" /> 2. Berita Acara Serah Terima (BAST)</CardTitle>
                         </CardHeader>
@@ -509,9 +582,228 @@ export default function GenerateHubPage() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
+                        <CardHeader className="p-8 bg-orange-50/50">
+                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><ShoppingCart className="h-6 w-6 text-orange-600" /> 3. Form Survey Harga & HPS</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-6">
+                                <div className="space-y-2 max-w-xs">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Jumlah Toko Survey</Label>
+                                    <Select value={spjData.num_shops?.toString() || "3"} onValueChange={v => setSpjData({...spjData, num_shops: parseInt(v)})}>
+                                        <SelectTrigger className="h-12 bg-white rounded-xl border-slate-200 font-black">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="2" className="font-bold">2 TOKO</SelectItem>
+                                            <SelectItem value="3" className="font-bold">3 TOKO</SelectItem>
+                                            <SelectItem value="4" className="font-bold">4 TOKO</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-500">Nama Toko 1</Label>
+                                        <Input placeholder="TOKO A" value={spjData.nama_toko1} onChange={e => setSpjData({...spjData, nama_toko1: e.target.value.toUpperCase()})} className="h-12 rounded-xl bg-white" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-500">Nama Toko 2</Label>
+                                        <Input placeholder="TOKO B" value={spjData.nama_toko2} onChange={e => setSpjData({...spjData, nama_toko2: e.target.value.toUpperCase()})} className="h-12 rounded-xl bg-white" />
+                                    </div>
+                                    {(spjData.num_shops >= 3) && (
+                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                            <Label className="text-[10px] font-black uppercase text-slate-500">Nama Toko 3</Label>
+                                            <Input placeholder="TOKO C" value={spjData.nama_toko3} onChange={e => setSpjData({...spjData, nama_toko3: e.target.value.toUpperCase()})} className="h-12 rounded-xl bg-white" />
+                                        </div>
+                                    )}
+                                    {(spjData.num_shops >= 4) && (
+                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                            <Label className="text-[10px] font-black uppercase text-slate-500">Nama Toko 4</Label>
+                                            <Input placeholder="TOKO D" value={spjData.nama_toko4} onChange={e => setSpjData({...spjData, nama_toko4: e.target.value.toUpperCase()})} className="h-12 rounded-xl bg-white" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <ScrollArea className="w-full whitespace-nowrap rounded-2xl border bg-white">
+                                    <div className="min-w-[1200px]">
+                                        <Table>
+                                            <TableHeader className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-md">
+                                                <TableRow className="border-slate-100">
+                                                    <TableHead className="w-[50px] text-center text-[10px] font-black uppercase">NO</TableHead>
+                                                    <TableHead className="w-[300px] text-[10px] font-black uppercase">NAMA JENIS BARANG</TableHead>
+                                                    <TableHead className="w-[100px] text-[10px] font-black uppercase">SATUAN</TableHead>
+                                                    {[...Array(spjData.num_shops || 3)].map((_, i) => (
+                                                        <TableHead key={i} className="w-[140px] text-[10px] font-black uppercase">HRG T{i+1}</TableHead>
+                                                    ))}
+                                                    <TableHead className="w-[140px] text-[10px] font-black uppercase bg-primary/5 text-primary">HPS</TableHead>
+                                                    <TableHead className="w-[90px] text-center text-[10px] font-black uppercase">PPN (%)</TableHead>
+                                                    <TableHead className="w-[90px] text-center text-[10px] font-black uppercase">PPH (%)</TableHead>
+                                                    <TableHead className="w-[60px]"></TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {spjData.survey_items.map((item: any, idx: number) => (
+                                                    <TableRow key={idx} className="hover:bg-slate-50 transition-colors border-slate-50">
+                                                        <TableCell className="text-center font-bold text-xs text-slate-400">{idx + 1}</TableCell>
+                                                        <TableCell><Input className="h-10 text-sm font-bold uppercase w-full bg-slate-50/30" placeholder="Contoh: Semen..." value={item.nama} onChange={e => updateSurveyItem(idx, 'nama', e.target.value)} /></TableCell>
+                                                        <TableCell><Input className="h-10 text-xs uppercase w-full" placeholder="SAK/M3" value={item.satuan} onChange={e => updateSurveyItem(idx, 'satuan', e.target.value)} /></TableCell>
+                                                        {[...Array(spjData.num_shops || 3)].map((_, i) => (
+                                                            <TableCell key={i}>
+                                                                <Input 
+                                                                    type="number" 
+                                                                    className="h-10 text-sm font-mono w-full" 
+                                                                    placeholder="0" 
+                                                                    value={item[`h${i+1}` as keyof any]} 
+                                                                    onChange={e => updateSurveyItem(idx, `h${i+1}`, e.target.value)} 
+                                                                />
+                                                            </TableCell>
+                                                        ))}
+                                                        <TableCell className="bg-primary/5"><Input type="number" className="h-10 text-sm font-mono font-black text-primary w-full border-primary/20" placeholder="0" value={item.hps} onChange={e => updateSurveyItem(idx, 'hps', e.target.value)} /></TableCell>
+                                                        <TableCell><Input type="number" className="h-10 text-sm text-center font-bold w-full" placeholder="0" value={item.ppn} onChange={e => updateSurveyItem(idx, 'ppn', e.target.value)} /></TableCell>
+                                                        <TableCell><Input type="number" className="h-10 text-sm text-center font-bold w-full" placeholder="0" value={item.pph} onChange={e => updateSurveyItem(idx, 'pph', e.target.value)} /></TableCell>
+                                                        <TableCell><Button variant="ghost" size="icon" className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => removeSurveyRow(idx)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    <ScrollBar orientation="horizontal" />
+                                </ScrollArea>
+                                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-2">
+                                        <Info className="h-3.5 w-3.5 text-primary" /> Geser tabel ke samping untuk isi harga dan pajak
+                                    </p>
+                                    <Button variant="outline" className="w-full sm:w-auto h-11 border-dashed border-primary/40 text-primary gap-2 font-black uppercase text-[10px] rounded-xl px-10 shadow-sm" onClick={addSurveyRow}>
+                                        <Plus className="h-4 w-4" /> Tambah Baris Barang
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t">
+                                <Button onClick={() => handleGenericSave(spjData, setIsSavingSPJ)} disabled={isSavingSPJ} className="h-16 rounded-[1.5rem] bg-orange-600 hover:bg-orange-700 text-white font-black uppercase shadow-xl gap-3">
+                                    {isSavingSPJ ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Isian
+                                </Button>
+                                <Button 
+                                  onClick={() => handleGeneratePDF('spj_survey_harga', 'Form Survey Harga')} 
+                                  disabled={!!isGenerating || !spjData.nama_toko1} 
+                                  variant="outline" 
+                                  className="h-16 rounded-[1.5rem] border-orange-200 text-orange-600 font-black uppercase gap-2 hover:bg-orange-50"
+                                >
+                                    {isGenerating === 'spj_survey_harga' ? <Loader2 className="animate-spin h-5 w-5" /> : <Store className="h-5 w-5" />} 
+                                    Cetak Survey Toko
+                                </Button>
+                                <Button 
+                                  onClick={() => handleGeneratePDF('spj_hps_kegiatan', 'Daftar HPS')} 
+                                  disabled={!!isGenerating || !spjData.nama_toko1} 
+                                  variant="outline" 
+                                  className="h-16 rounded-[1.5rem] border-primary/20 text-primary font-black uppercase gap-2 hover:bg-primary/5"
+                                >
+                                    {isGenerating === 'spj_hps_kegiatan' ? <Loader2 className="animate-spin h-5 w-5" /> : <ClipboardList className="h-5 w-5" />} 
+                                    Cetak Dokumen HPS
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-orange-600">
+                        <CardHeader className="p-8 bg-orange-50/50">
+                            <CardTitle className="text-xl font-black uppercase flex items-center gap-3"><Scale className="h-6 w-6 text-orange-600" /> 4. BERITA ACARA PENETAPAN HARGA PERKIRAAN SENDIRI (HPS)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-primary ml-1">Pilih Toko Pemakai HPS (Mufakat)</Label>
+                                    <Select value={spjData.selected_shop_hps} onValueChange={v => setSpjData({...spjData, selected_shop_hps: v})}>
+                                        <SelectTrigger className="h-12 bg-white rounded-xl border-orange-200 font-bold">
+                                            <SelectValue placeholder="Pilih Toko..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {shopOptions.map(opt => (
+                                                <SelectItem key={opt.id} value={opt.name} className="font-bold">{opt.name}</SelectItem>
+                                            ))}
+                                            {shopOptions.length === 0 && <SelectItem disabled value="none">Isi Nama Toko di Survey Terlebih Dahulu</SelectItem>}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500">Pilih Tanggal BA</Label>
+                                    <Input type="date" value={spjData.ba_hps_date} onChange={e => setSpjData({...spjData, ba_hps_date: e.target.value})} className="h-12 rounded-xl" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500">Pilih Waktu</Label>
+                                    <Input type="time" value={spjData.ba_hps_time} onChange={e => setSpjData({...spjData, ba_hps_time: e.target.value})} className="h-12 rounded-xl" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500">Isian Tempat</Label>
+                                    <Input value={spjData.ba_hps_location} onChange={e => setSpjData({...spjData, ba_hps_location: e.target.value})} className="h-12 rounded-xl" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <h3 className="text-xs font-black uppercase text-primary flex items-center gap-2"><Users className="h-4 w-4" /> Pimpinan Rapat</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-500">Nama Ketua</Label>
+                                        <Input value={spjData.ba_hps_leader_name} onChange={e => setSpjData({...spjData, ba_hps_leader_name: e.target.value.toUpperCase()})} placeholder="PIMPINAN MUSYAWARAH" className="h-12 rounded-xl" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-500">Nama Sekretaris</Label>
+                                        <Input value={spjData.ba_hps_secretary_name} onChange={e => setSpjData({...spjData, ba_hps_secretary_name: e.target.value.toUpperCase()})} placeholder="NOTULENSI / KASI KAUR" className="h-12 rounded-xl" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <h3 className="text-xs font-black uppercase text-primary flex items-center gap-2"><Briefcase className="h-4 w-4" /> Narasumber Kegiatan</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                    <div className="p-6 border rounded-2xl bg-slate-50/50 space-y-4">
+                                        <p className="text-[9px] font-black uppercase text-primary">Narasumber 1</p>
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-bold uppercase text-slate-400">Nama</Label>
+                                            <Input value={spjData.ba_hps_narsum1_name} onChange={e => setSpjData({...spjData, ba_hps_narsum1_name: e.target.value.toUpperCase()})} className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-bold uppercase text-slate-400">Instansi</Label>
+                                            <Input value={spjData.ba_hps_narsum1_inst} onChange={e => setSpjData({...spjData, ba_hps_narsum1_inst: e.target.value.toUpperCase()})} className="h-10 bg-white" />
+                                        </div>
+                                    </div>
+                                    <div className="p-6 border rounded-2xl bg-slate-50/50 space-y-4">
+                                        <p className="text-[9px] font-black uppercase text-primary">Narasumber 2</p>
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-bold uppercase text-slate-400">Nama</Label>
+                                            <Input value={spjData.ba_hps_narsum2_name} onChange={e => setSpjData({...spjData, ba_hps_narsum2_name: e.target.value.toUpperCase()})} className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-bold uppercase text-slate-400">Instansi</Label>
+                                            <Input value={spjData.ba_hps_narsum2_inst} onChange={e => setSpjData({...spjData, ba_hps_narsum2_inst: e.target.value.toUpperCase()})} className="h-10 bg-white" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-6 border-t">
+                                <Button onClick={() => handleGenericSave(spjData, setIsSavingSPJ)} disabled={isSavingSPJ} className="h-16 flex-1 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black uppercase shadow-xl gap-3">
+                                    {isSavingSPJ ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />} Simpan Isian BA HPS
+                                </Button>
+                                <Button 
+                                  onClick={() => handleGeneratePDF('spj_ba_hps', 'Berita Acara Penetapan HPS')} 
+                                  disabled={!!isGenerating || !spjData.ba_hps_leader_name} 
+                                  variant="outline" 
+                                  className="h-16 flex-1 rounded-2xl border-orange-200 text-orange-600 font-black uppercase gap-2 hover:bg-orange-50"
+                                >
+                                    {isGenerating === 'spj_ba_hps' ? <Loader2 className="animate-spin h-5 w-5" /> : <Printer className="h-5 w-5" />} 
+                                    Cetak PDF BA HPS
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
 
-                {/* TAB 4: PBJ */}
+                {/* TAB 2: PBJ */}
                 <TabsContent value="pbj" className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden border-t-8 border-purple-600">
                         <CardHeader className="p-8 bg-purple-50/50">
@@ -582,7 +874,6 @@ export default function GenerateHubPage() {
                 </TabsContent>
             </Tabs>
         </div>
-      </div>
     </div>
   )
 }

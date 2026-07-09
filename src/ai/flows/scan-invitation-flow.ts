@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI assistant to scan invitation PDFs and extract key details.
@@ -34,7 +35,7 @@ export async function scanInvitation(input: ScanInvitationInput): Promise<ScanIn
 
 const prompt = ai.definePrompt({
   name: 'scanInvitationPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: ScanInvitationInputSchema},
   output: {schema: ScanInvitationOutputSchema},
   prompt: `You are an expert administrative assistant for a village in Indonesia. Your task is to analyze the provided document (an invitation letter) and extract key information about an event.
